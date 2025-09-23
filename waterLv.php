@@ -2,7 +2,7 @@
 
 include('php/config.php');
 
-$SQL = "SELECT * FROM `sensor_box_02` LIMIT 5;";
+$SQL = "SELECT * FROM `sensor_box_03` ORDER BY Record_Date DESC, Record_Time DESC LIMIT 5;";
 
 $stmt = $conn->prepare($SQL);
 
@@ -76,7 +76,7 @@ $sensor_data = $stmt->get_result();
 
                 <?php
 
-                $SQL = "SELECT * FROM `sensor_box_02`;";
+                $SQL = "SELECT * FROM `sensor_box_03` ORDER BY Record_Date DESC, Record_Time DESC;";
 
                 $stmt = $conn->prepare($SQL);
 
@@ -98,24 +98,60 @@ $sensor_data = $stmt->get_result();
                                     <th>Record ID</th>
                                     <th>Record Date</th>
                                     <th>Record Time</th>
-                                    <th>Water Level (lv/100)</th>
+                                    <th>Water Level (cm)</th>
+                                    <th>Tank ID</th>
+                                    <th>Water Volume (L)</th>
+                                    <th>Status</th>
                                 </tr>
+                            </thead>
                             </thead>
                             <tfoot>
                                 <tr>
                                     <th>Record ID</th>
                                     <th>Record Date</th>
                                     <th>Record Time</th>
-                                    <th>Water Level (lv/100)</th>
+                                    <th>Water Level (cm)</th>
+                                    <th>Tank ID</th>
+                                    <th>Water Volume (L)</th>
+                                    <th>Status</th>
                                 </tr>
                             </tfoot>
                             <tbody>
                                 <?php foreach ($all_data as $row) { ?>
                                     <tr>
-                                        <td><?php echo $row['Record_ID'] ?></td>
-                                        <td><?php echo $row['Record_Date'] ?></td>
-                                        <td><?php echo $row['Record_Time'] ?></td>
-                                        <td><?php echo $row['Water_Level'] ?></td>
+                                        <td><?php echo htmlspecialchars($row['Record_ID']) ?></td>
+                                        <td><?php echo htmlspecialchars($row['Record_Date']) ?></td>
+                                        <td><?php echo htmlspecialchars($row['Record_Time']) ?></td>
+                                        <td><?php echo htmlspecialchars($row['Water_Level']) ?> cm</td>
+                                        <td>Tank_01</td>
+                                        <td>N/A</td>
+                                        <td>
+                                            <span class="badge bg-<?php 
+                                                $level = (float)$row['Water_Level'];
+                                                if ($level < 20) {
+                                                    echo 'danger';
+                                                } elseif ($level < 50) {
+                                                    echo 'warning'; 
+                                                } elseif ($level > 90) {
+                                                    echo 'info';
+                                                } else {
+                                                    echo 'success';
+                                                }
+                                            ?>">
+                                                <?php 
+                                                $level = (float)$row['Water_Level'];
+                                                if ($level < 20) {
+                                                    echo 'Empty';
+                                                } elseif ($level < 50) {
+                                                    echo 'Low'; 
+                                                } elseif ($level > 90) {
+                                                    echo 'Full';
+                                                } else {
+                                                    echo 'Normal';
+                                                }
+                                                ?>
+                                            </span>
+                                        </td>
                                     </tr>
                                 <?php } ?>
                             </tbody>
@@ -145,12 +181,12 @@ $sensor_data = $stmt->get_result();
 
         <?php foreach ($sensor_data as $row) {
 
-            $humidity = (float)$row['Water_Level'];
+            $waterLevel = (float)$row['Water_Level'];
 
             $record_time = $row['Record_Time'];
         ?>
 
-            yValues.push(<?php echo $humidity; ?>);
+            yValues.push(<?php echo $waterLevel; ?>);
 
             xValues.push('<?php echo $record_time; ?>');
 
@@ -192,13 +228,13 @@ $sensor_data = $stmt->get_result();
 
         <?php foreach ($sensor_data as $row) {
 
-            $humidity = (float)$row['Water_Level'];
+            $waterLevel = (float)$row['Water_Level'];
 
             $time = $row['Record_Time'];
 
         ?>
 
-            yValues.push(<?php echo $humidity; ?>);
+            yValues.push(<?php echo $waterLevel; ?>);
 
             xValues.push('<?php echo $time; ?>');
 
@@ -253,7 +289,7 @@ $sensor_data = $stmt->get_result();
 
         <?php foreach ($sensor_data as $row) {
 
-            $humidity = (float)$row['Water_Level'];
+            $waterLevel = (float)$row['Water_Level'];
 
             $time = $row['Record_Time'];
 
@@ -261,7 +297,7 @@ $sensor_data = $stmt->get_result();
 
             xValues.push('<?php echo $time; ?>');
 
-            yValues.push(<?php echo $humidity; ?>);
+            yValues.push(<?php echo $waterLevel; ?>);
 
 
         <?php } ?>

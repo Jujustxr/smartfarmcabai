@@ -2,7 +2,7 @@
 
 include('php/config.php');
 
-$SQL = "SELECT * FROM `sensor_box_02` LIMIT 5;";
+$SQL = "SELECT * FROM `sensor_box_02` ORDER BY Record_Date DESC, Record_Time DESC LIMIT 5;";
 
 $stmt = $conn->prepare($SQL);
 
@@ -76,7 +76,7 @@ $sensor_data = $stmt->get_result();
 
                 <?php
 
-                $SQL = "SELECT * FROM `sensor_box_02`;";
+                $SQL = "SELECT * FROM `sensor_box_02` ORDER BY Record_Date DESC, Record_Time DESC;";
 
                 $stmt = $conn->prepare($SQL);
 

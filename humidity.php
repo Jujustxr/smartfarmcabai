@@ -2,7 +2,7 @@
 
 include('php/config.php');
 
-$SQL = "SELECT * FROM `sensor_box_01` LIMIT 5;";
+$SQL = "SELECT * FROM `sensor_box_05` ORDER BY Record_Date DESC, Record_Time DESC LIMIT 5;";
 
 $stmt = $conn->prepare($SQL);
 
@@ -29,7 +29,7 @@ $sensor_data = $stmt->get_result();
             <div class="container-fluid px-4">
                 <h1 class="mt-4">HUMIDITY</h1>
                 <ol class="breadcrumb mb-4">
-                    <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
                     <li class="breadcrumb-item active">Humidity</li>
                 </ol>
                 <div class="card mb-4">
@@ -76,7 +76,7 @@ $sensor_data = $stmt->get_result();
 
                 <?php 
                 
-                $SQL = "SELECT * FROM `sensor_box_01`;";
+                $SQL = "SELECT * FROM `sensor_box_05` ORDER BY Record_Date DESC, Record_Time DESC;";
 
                 $stmt = $conn->prepare($SQL);
 

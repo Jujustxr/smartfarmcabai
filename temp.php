@@ -2,7 +2,7 @@
 
 include('php/config.php');
 
-$SQL = "SELECT * FROM `sensor_box_01` LIMIT 5;";
+$SQL = "SELECT * FROM `sensor_box_04` ORDER BY Record_Date DESC, Record_Time DESC LIMIT 5;";
 
 $stmt = $conn->prepare($SQL);
 
@@ -13,15 +13,11 @@ $sensor_data = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>
-
 <html lang="en">
-
 <?php include 'assets/components/head.php' ?>
 
 <body class="sb-nav-fixed">
-
     <?php include 'assets/components/navbar.php' ?>
-
     <?php include 'sidebar.php' ?>
 
     <div id="layoutSidenav_content">
@@ -37,25 +33,25 @@ $sensor_data = $stmt->get_result();
                         This dashboard uses line charts, pie charts, and bar charts to display Temperature statistics for the given time period. Using datatable, you may view more information
                     </div>
                 </div>
+                
+                <!-- Area Chart -->
                 <div class="card mb-4">
                     <div class="card-header">
                         <i class="fas fa-chart-area me-1"></i>
-                        Area Chart
+                        Temperature Area Chart
                     </div>
-                    <!--<div class="card-body"><canvas id="myAreaChart" width="100%" height="30"></canvas></div>-->
-                    <!--<div class="card-body"><canvas id="line_graps" style="width:100%;max-width:600px"></canvas></div>-->
                     <div class="card-body"><canvas id="areaChart" width="100%" height="30"></canvas></div>
                     <div class="card-footer small text-muted">Last Updated <?php echo date("Y.m.d") ?></div>
                 </div>
+                
+                <!-- Bar and Pie Charts -->
                 <div class="row">
                     <div class="col-lg-6">
                         <div class="card mb-4">
                             <div class="card-header">
                                 <i class="fas fa-chart-bar me-1"></i>
-                                Bar Chart
+                                Temperature Bar Chart
                             </div>
-                            <!--<div class="card-body"><canvas id="myBarChart" width="100%" height="50"></canvas></div>-->
-                            <!--<div id="piechart" style="width:100%; max-width:600px; height:500px;"></div>-->
                             <div class="card-body"><canvas id="myChart2" style="width:100%; max-width:600px"></canvas></div>
                             <div class="card-footer small text-muted">Last Updated <?php echo date("Y.m.d") ?></div>
                         </div>
@@ -64,32 +60,26 @@ $sensor_data = $stmt->get_result();
                         <div class="card mb-4">
                             <div class="card-header">
                                 <i class="fas fa-chart-pie me-1"></i>
-                                Pie Chart
+                                Temperature Pie Chart
                             </div>
-                            <!--<div class="card-body"><canvas id="myPieChart" width="100%" height="50"></canvas></div>-->
-                            <!--<div id="myChart" style="width:100%; max-width: 900px; height:500px;"></div>-->
                             <div class="card-body"><canvas id="myChart" style="width:100%;max-width:600px"></canvas></div>
                             <div class="card-footer small text-muted">Last Updated <?php echo date("Y.m.d") ?></div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Data Table -->
                 <?php
-
-                $SQL = "SELECT * FROM `sensor_box_01`;";
-
+                $SQL = "SELECT * FROM `sensor_box_04` ORDER BY Record_Date DESC, Record_Time DESC;";
                 $stmt = $conn->prepare($SQL);
-
                 $stmt->execute();
-
                 $all_data = $stmt->get_result();
-
                 ?>
 
                 <div class="card mb-4">
                     <div class="card-header">
                         <i class="fas fa-table me-1"></i>
-                        DataTable
+                        Temperature DataTable
                     </div>
                     <div class="card-body">
                         <table id="datatablesSimple">
@@ -98,7 +88,7 @@ $sensor_data = $stmt->get_result();
                                     <th>Record ID</th>
                                     <th>Record Date</th>
                                     <th>Record Time</th>
-                                    <th>Temperature(c)</th>
+                                    <th>Temperature (°C)</th>
                                 </tr>
                             </thead>
                             <tfoot>
@@ -106,16 +96,16 @@ $sensor_data = $stmt->get_result();
                                     <th>Record ID</th>
                                     <th>Record Date</th>
                                     <th>Record Time</th>
-                                    <th>Temperature(c)</th>
+                                    <th>Temperature (°C)</th>
                                 </tr>
                             </tfoot>
                             <tbody>
                                 <?php foreach ($all_data as $row) { ?>
                                     <tr>
-                                        <td><?php echo $row['Record_ID'] ?></td>
-                                        <td><?php echo $row['Record_Date'] ?></td>
-                                        <td><?php echo $row['Record_Time'] ?></td>
-                                        <td><?php echo $row['Temperature'] . 'C' ?></td>
+                                        <td><?php echo htmlspecialchars($row['Record_ID']) ?></td>
+                                        <td><?php echo htmlspecialchars($row['Record_Date']) ?></td>
+                                        <td><?php echo htmlspecialchars($row['Record_Time']) ?></td>
+                                        <td><?php echo htmlspecialchars($row['Temperature']) . '°C' ?></td>
                                     </tr>
                                 <?php } ?>
                             </tbody>
@@ -128,32 +118,23 @@ $sensor_data = $stmt->get_result();
         <?php include 'assets/components/footer.php' ?>
     </div>
     </div>
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-
     <script src="js/scripts.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
 
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-
-    <!-- SCRIPT FOR PIE-CHART-->
-
+    <!-- Pie Chart Script -->
     <script>
         var yValues = [];
-
         var xValues = [];
 
         <?php foreach ($sensor_data as $row) {
-
-            $humidity = (float)$row['Heat_Index'];
-
+            $temperature = (float)$row['Temperature'];
             $record_time = $row['Record_Time'];
         ?>
-
-            yValues.push(<?php echo $humidity; ?>);
-
+            yValues.push(<?php echo $temperature; ?>);
             xValues.push('<?php echo $record_time; ?>');
-
         <?php } ?>
 
         var barColors = [
@@ -176,32 +157,23 @@ $sensor_data = $stmt->get_result();
             options: {
                 title: {
                     display: true,
-                    text: "Latest Temperature(c) Comparison Chart"
+                    text: "Latest Temperature (°C) Comparison Chart"
                 }
             }
         });
     </script>
 
-
-    <!-- SCRIPT FOR BAR-CHART-->
-
+    <!-- Bar Chart Script -->
     <script>
-        var yValues = [];
-
-        var xValues = [];
+        var yValues2 = [];
+        var xValues2 = [];
 
         <?php foreach ($sensor_data as $row) {
-
-            $humidity = (float)$row['Temperature'];
-
+            $temperature = (float)$row['Temperature'];
             $time = $row['Record_Time'];
-
         ?>
-
-            yValues.push(<?php echo $humidity; ?>);
-
-            xValues.push('<?php echo $time; ?>');
-
+            yValues2.push(<?php echo $temperature; ?>);
+            xValues2.push('<?php echo $time; ?>');
         <?php } ?>
 
         var barColors = ["red", "green", "blue", "orange", "brown"];
@@ -209,10 +181,10 @@ $sensor_data = $stmt->get_result();
         new Chart("myChart2", {
             type: "bar",
             data: {
-                labels: xValues,
+                labels: xValues2,
                 datasets: [{
                     backgroundColor: barColors,
-                    data: yValues
+                    data: yValues2
                 }]
             },
             options: {
@@ -221,65 +193,50 @@ $sensor_data = $stmt->get_result();
                 },
                 title: {
                     display: true,
-                    text: "Latest Temperature(c) Comparison Chart"
+                    text: "Latest Temperature (°C) Bar Chart"
                 },
                 scales: {
                     yAxes: [{
                         scaleLabel: {
                             display: true,
-                            labelString: 'Temperature(c)'
+                            labelString: 'Temperature (°C)'
                         }
                     }],
-
                     xAxes: [{
                         display: true,
                         scaleLabel: {
                             display: true,
                             labelString: 'Capture Time'
                         }
-                    }],
+                    }]
                 }
             }
         });
     </script>
 
-
-    <!-- SCRIPT FOR LINE-CHART-->
-
+    <!-- Line Chart Script -->
     <script>
-        var xValues = [];
-
-        var yValues = [];
+        var xValues3 = [];
+        var yValues3 = [];
 
         <?php foreach ($sensor_data as $row) {
-
-            $humidity = (float)$row['Temperature'];
-
+            $temperature = (float)$row['Temperature'];
             $time = $row['Record_Time'];
-
         ?>
-
-            xValues.push('<?php echo $time; ?>');
-
-            yValues.push(<?php echo $humidity; ?>);
-
-
+            xValues3.push('<?php echo $time; ?>');
+            yValues3.push(<?php echo $temperature; ?>);
         <?php } ?>
-
-        console.log(xValues);
-
-        console.log(yValues);
 
         new Chart("areaChart", {
             type: "line",
             data: {
-                labels: xValues,
+                labels: xValues3,
                 datasets: [{
                     fill: false,
                     lineTension: 0,
-                    backgroundColor: "rgba(0,0,255,1.0)",
-                    borderColor: "rgba(0,0,255,0.1)",
-                    data: yValues
+                    backgroundColor: "rgba(255,99,132,1.0)",
+                    borderColor: "rgba(255,99,132,0.8)",
+                    data: yValues3
                 }]
             },
             options: {
@@ -290,34 +247,28 @@ $sensor_data = $stmt->get_result();
                     yAxes: [{
                         ticks: {
                             min: 0,
-                            max: 100
+                            max: 50
                         },
                         scaleLabel: {
                             display: true,
-                            labelString: 'Temperature(c)'
+                            labelString: 'Temperature (°C)'
                         }
                     }],
-
                     xAxes: [{
                         display: true,
                         scaleLabel: {
                             display: true,
                             labelString: 'Capture Time'
                         }
-                    }],
+                    }]
                 }
             }
         });
     </script>
 
+    <!-- DataTables Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js" crossorigin="anonymous"></script>
+    <script src="js/datatables-simple-demo.js"></script>
+
 </body>
-
-
-
-<!-- ADD JS SCRIPTS FOR DATATABLES HERE-->
-
-<script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js" crossorigin="anonymous"></script>
-
-<script src="js/datatables-simple-demo.js"></script>
-
 </html>

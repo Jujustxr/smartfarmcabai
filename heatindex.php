@@ -2,7 +2,7 @@
 
 include('php/config.php');
 
-$SQL = "SELECT * FROM `sensor_box_01` LIMIT 5;";
+$SQL = "SELECT * FROM `sensor_box_06` ORDER BY Record_Date DESC, Record_Time DESC LIMIT 5;";
 
 $stmt = $conn->prepare($SQL);
 
@@ -76,7 +76,7 @@ $sensor_data = $stmt->get_result();
 
                 <?php 
                 
-                $SQL = "SELECT * FROM `sensor_box_01`;";
+                $SQL = "SELECT * FROM `sensor_box_06` ORDER BY Record_Date DESC, Record_Time DESC;";
 
                 $stmt = $conn->prepare($SQL);
 
@@ -145,12 +145,12 @@ $sensor_data = $stmt->get_result();
 
         <?php foreach ($sensor_data as $row) {
 
-            $humidity = (float)$row['Heat_Index'];
+            $heatIndex = (float)$row['Heat_Index'];
 
             $record_time = $row['Record_Time'];
         ?>
 
-            yValues.push(<?php echo $humidity; ?>);
+            yValues.push(<?php echo $heatIndex; ?>);
 
             xValues.push('<?php echo $record_time; ?>');
 
