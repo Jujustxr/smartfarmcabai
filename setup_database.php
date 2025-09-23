@@ -144,6 +144,28 @@ foreach ($sample_data as $index => $sql) {
     }
 }
 
+// Create admin_users table
+$createAdminUsersTable = "CREATE TABLE IF NOT EXISTS admin_users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+)";
+
+if ($conn->query($createAdminUsersTable) === TRUE) {
+    echo "Table admin_users created successfully.";
+} else {
+    echo "Error creating admin_users table: " . $conn->error;
+}
+
+// Insert default admin user
+$defaultAdminUsername = 'admin';
+$defaultAdminPassword = password_hash('admin123', PASSWORD_DEFAULT);
+
+$insertAdminUser = "INSERT IGNORE INTO admin_users (username, password) VALUES (?, ?)";
+$stmt = $conn->prepare($insertAdminUser);
+$stmt->bind_param('ss', $defaultAdminUsername, $defaultAdminPassword);
+$stmt->execute();
+
 echo "<h2>Database Setup Complete!</h2>";
 echo "<p><a href='index.php'>Go to Dashboard</a></p>";
 
