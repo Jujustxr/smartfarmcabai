@@ -1,5 +1,6 @@
 import Card from '../components/Card'
 import Chart from '../components/Chart'
+import useDarkMode from '../hooks/useDarkMode'
 import { 
   FaThermometerHalf, 
   FaTint, 
@@ -8,6 +9,10 @@ import {
 import { FaGear } from 'react-icons/fa6'
 
 const Dashboard = () => {
+  const darkModeHook = useDarkMode()
+  console.log('Dashboard - full hook object:', darkModeHook)
+  const { isDarkMode } = darkModeHook
+  console.log('Dashboard - extracted isDarkMode:', isDarkMode, typeof isDarkMode)
   // Data sementara untuk chart dashboard
   const generateDashboardChartData = () => {
     const data = []
@@ -53,12 +58,8 @@ const Dashboard = () => {
             icon={<FaThermometerHalf className="w-6 h-6" />}
             value="28"
             unit="°C"
-            status="normal"
             normalRange="25-32°C"
-            borderColor="border-orange-500"
-            iconBg="bg-orange-100"
-            iconColor="text-orange-600"
-            valueColor="text-orange-600"
+            darkMode={isDarkMode}
           />
 
           {/* Card Sensor Kelembaban */}
@@ -67,12 +68,8 @@ const Dashboard = () => {
             icon={<FaTint className="w-6 h-6" />}
             value="65"
             unit="%"
-            status="normal"
             normalRange="60-80%"
-            borderColor="border-blue-500"
-            iconBg="bg-blue-100"
-            iconColor="text-blue-600"
-            valueColor="text-blue-600"
+            darkMode={isDarkMode}
           />
 
           {/* Card Sensor pH Tanah */}
@@ -81,12 +78,8 @@ const Dashboard = () => {
             icon={<FaFlask className="w-6 h-6" />}
             value="6.8"
             unit=""
-            status="normal"
             normalRange="6.0-7.0"
-            borderColor="border-yellow-500"
-            iconBg="bg-yellow-100"
-            iconColor="text-yellow-600"
-            valueColor="text-yellow-600"
+            darkMode={isDarkMode}
           />
 
           {/* Card Status Pompa Air */}
@@ -95,12 +88,8 @@ const Dashboard = () => {
             icon={<FaGear className="w-6 h-6" />}
             value="Aktif"
             unit=""
-            status="normal"
             normalRange="Auto Mode"
-            borderColor="border-green-500"
-            iconBg="bg-green-100"
-            iconColor="text-green-600"
-            valueColor="text-green-600"
+            darkMode={isDarkMode}
           />
         </div>
 
