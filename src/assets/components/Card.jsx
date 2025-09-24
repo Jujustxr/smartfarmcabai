@@ -10,8 +10,6 @@ const Card = ({
 }) => {
   const { isDarkMode: globalDarkMode } = useDarkMode()
   const isDarkMode = darkMode !== undefined ? darkMode : globalDarkMode
-  
-  console.log('Card received darkMode prop:', darkMode, 'globalDarkMode:', globalDarkMode, 'final isDarkMode:', isDarkMode)
 
   return (
     <div className={`p-6 rounded-lg shadow-md border-l-4 transition-all duration-300 hover:shadow-lg ${

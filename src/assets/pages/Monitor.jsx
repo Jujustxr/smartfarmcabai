@@ -10,7 +10,7 @@ import {
   FaLeaf 
 } from 'react-icons/fa'
 
-const Monitor = () => {
+const Monitor = ({ isDarkMode }) => {
   // Data sementara untuk chart (simulasi data real-time)
   const generateChartData = () => {
     const data = []
@@ -52,8 +52,12 @@ const Monitor = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Monitor Sensor</h1>
-          <p className="text-gray-600">Real-time monitoring parameter lingkungan</p>
+          <h1 className={`text-3xl font-bold mb-2 ${
+            isDarkMode ? 'text-slate-100' : 'text-gray-800'
+          }`}>Monitor Sensor</h1>
+          <p className={`${
+            isDarkMode ? 'text-slate-400' : 'text-gray-600'
+          }`}>Real-time monitoring parameter lingkungan</p>
         </div>
 
         {/* Sensor Grid */}
@@ -64,11 +68,9 @@ const Monitor = () => {
             icon={<FaThermometerHalf className="w-6 h-6" />}
             value={suhuSensor}
             unit="°C"
-            status={parseFloat(suhuSensor) > 32 ? 'warning' : 'normal'}
             normalRange="25-32°C"
             progressValue={Math.min(Math.max((parseFloat(suhuSensor) - 20) / 15 * 100, 0), 100)}
-            valueColor="text-orange-600"
-            progressColor="bg-orange-500"
+            darkMode={isDarkMode}
           />
 
           {/* Sensor Kelembaban Udara */}
@@ -77,11 +79,9 @@ const Monitor = () => {
             icon={<FaTint className="w-6 h-6" />}
             value={kelembabanUdara}
             unit="%"
-            status={kelembabanUdara < 50 || kelembabanUdara > 80 ? 'warning' : 'normal'}
             normalRange="50-80%"
             progressValue={kelembabanUdara}
-            valueColor="text-blue-600"
-            progressColor="bg-blue-500"
+            darkMode={isDarkMode}
           />
 
           {/* Sensor pH */}
@@ -90,11 +90,9 @@ const Monitor = () => {
             icon={<FaFlask className="w-6 h-6" />}
             value={phTanah}
             unit=""
-            status={parseFloat(phTanah) < 6.0 || parseFloat(phTanah) > 7.0 ? 'warning' : 'normal'}
             normalRange="6.0-7.0"
             progressValue={Math.min(Math.max((parseFloat(phTanah) - 5.5) / 2 * 100, 0), 100)}
-            valueColor="text-green-600"
-            progressColor="bg-green-500"
+            darkMode={isDarkMode}
           />
 
           {/* Kelembaban Tanah */}
@@ -103,11 +101,9 @@ const Monitor = () => {
             icon={<FaSeedling className="w-6 h-6" />}
             value={kelembabanTanah}
             unit="%"
-            status={kelembabanTanah < 50 ? 'warning' : 'normal'}
             normalRange="50-70%"
             progressValue={kelembabanTanah}
-            valueColor={kelembabanTanah < 50 ? "text-yellow-600" : "text-green-600"}
-            progressColor={kelembabanTanah < 50 ? "bg-yellow-500" : "bg-green-500"}
+            darkMode={isDarkMode}
           />
 
           {/* Intensitas Cahaya */}
@@ -116,11 +112,9 @@ const Monitor = () => {
             icon={<FaSun className="w-6 h-6" />}
             value={intensitasCahaya}
             unit=" Lux"
-            status={intensitasCahaya < 500 || intensitasCahaya > 1200 ? 'warning' : 'normal'}
             normalRange="500-1200 Lux"
             progressValue={Math.min(Math.max((intensitasCahaya - 300) / 900 * 100, 0), 100)}
-            valueColor="text-yellow-500"
-            progressColor="bg-yellow-400"
+            darkMode={isDarkMode}
           />
 
           {/* Nutrisi (EC) */}
@@ -129,11 +123,9 @@ const Monitor = () => {
             icon={<FaLeaf className="w-6 h-6" />}
             value={nutrisiEC}
             unit=" mS"
-            status={parseFloat(nutrisiEC) < 1.5 || parseFloat(nutrisiEC) > 2.5 ? 'warning' : 'normal'}
             normalRange="1.5-2.5 mS"
             progressValue={Math.min(Math.max((parseFloat(nutrisiEC) - 1.0) / 2.0 * 100, 0), 100)}
-            valueColor="text-purple-600"
-            progressColor="bg-purple-500"
+            darkMode={isDarkMode}
           />
         </div>
 
@@ -143,12 +135,17 @@ const Monitor = () => {
             title="Grafik Suhu & Kelembaban Real-time"
             data={chartData}
             timeRanges={['1H', '6H', '24H']}
+            darkMode={isDarkMode}
           />
         </div>
 
         {/* Alert System */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Sistem Peringatan</h3>
+        <div className={`p-6 rounded-lg shadow-md ${
+          isDarkMode ? 'bg-slate-800' : 'bg-white'
+        }`}>
+          <h3 className={`text-lg font-semibold mb-4 ${
+            isDarkMode ? 'text-slate-100' : 'text-gray-800'
+          }`}>Sistem Peringatan</h3>
           <div className="space-y-3">
             {/* Warning untuk kelembaban tanah rendah */}
             {kelembabanTanah < 50 && (

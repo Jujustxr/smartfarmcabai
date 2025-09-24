@@ -27,7 +27,6 @@ const useDarkMode = () => {
     setIsDarkMode(!isDarkMode)
   }
 
-  console.log('useDarkMode hook - returning:', { isDarkMode, toggleDarkMode })
   return { isDarkMode, toggleDarkMode }
 }
 

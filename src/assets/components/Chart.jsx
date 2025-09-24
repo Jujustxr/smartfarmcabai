@@ -1,7 +1,10 @@
 import React, { useState } from 'react'
+import useDarkMode from '../hooks/useDarkMode'
 
-const Chart = ({ title = "Real-time Chart", data = [], timeRanges = ['1H', '6H', '24H'] }) => {
+const Chart = ({ title = "Real-time Chart", data = [], timeRanges = ['1H', '6H', '24H'], darkMode }) => {
   const [activeTimeRange, setActiveTimeRange] = useState(timeRanges[0])
+  const { isDarkMode: globalDarkMode } = useDarkMode()
+  const isDarkMode = darkMode !== undefined ? darkMode : globalDarkMode
 
   // Filter data berdasarkan time range yang dipilih
   const getFilteredData = () => {
@@ -68,9 +71,13 @@ const Chart = ({ title = "Real-time Chart", data = [], timeRanges = ['1H', '6H',
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className={`p-6 rounded-lg shadow-md ${
+      isDarkMode ? 'bg-slate-800' : 'bg-white'
+    }`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+        <h3 className={`text-lg font-semibold ${
+          isDarkMode ? 'text-slate-100' : 'text-gray-800'
+        }`}>{title}</h3>
         <div className="flex space-x-2">
           {timeRanges.map((range) => (
             <button
@@ -78,8 +85,8 @@ const Chart = ({ title = "Real-time Chart", data = [], timeRanges = ['1H', '6H',
               onClick={() => setActiveTimeRange(range)}
               className={`px-3 py-1 text-sm rounded-full transition-colors duration-200 ${
                 activeTimeRange === range
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? (isDarkMode ? 'bg-emerald-900/30 text-emerald-400' : 'bg-green-100 text-green-700')
+                  : (isDarkMode ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200')
               }`}
             >
               {range}
@@ -95,11 +102,15 @@ const Chart = ({ title = "Real-time Chart", data = [], timeRanges = ['1H', '6H',
             <div className="flex items-center space-x-6 mb-4">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                <span className="text-sm text-gray-600">Suhu (°C)</span>
+                <span className={`text-sm ${
+                  isDarkMode ? 'text-slate-400' : 'text-gray-600'
+                }`}>Suhu (°C)</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="text-sm text-gray-600">Kelembaban (%)</span>
+                <span className={`text-sm ${
+                  isDarkMode ? 'text-slate-400' : 'text-gray-600'
+                }`}>Kelembaban (%)</span>
               </div>
             </div>
 
@@ -108,12 +119,16 @@ const Chart = ({ title = "Real-time Chart", data = [], timeRanges = ['1H', '6H',
               <svg 
                 width={chartWidth} 
                 height={chartHeight} 
-                className="border border-gray-200 rounded-lg bg-gray-50"
+                className={`border rounded-lg ${
+                  isDarkMode 
+                    ? 'border-slate-600 bg-slate-700' 
+                    : 'border-gray-200 bg-gray-50'
+                }`}
               >
                 {/* Grid lines */}
                 <defs>
                   <pattern id="grid" width="50" height="30" patternUnits="userSpaceOnUse">
-                    <path d="M 50 0 L 0 0 0 30" fill="none" stroke="#e5e7eb" strokeWidth="1"/>
+                    <path d="M 50 0 L 0 0 0 30" fill="none" stroke={isDarkMode ? '#475569' : '#e5e7eb'} strokeWidth="1"/>
                   </pattern>
                 </defs>
                 <rect width="100%" height="100%" fill="url(#grid)" />
@@ -174,7 +189,7 @@ const Chart = ({ title = "Real-time Chart", data = [], timeRanges = ['1H', '6H',
                       x="10"
                       y={chartHeight - 40 - (index * (chartHeight - 80) / 4)}
                       fontSize="10"
-                      fill="#6b7280"
+                      fill={isDarkMode ? '#94a3b8' : '#6b7280'}
                     >
                       {value}
                     </text>
@@ -185,26 +200,46 @@ const Chart = ({ title = "Real-time Chart", data = [], timeRanges = ['1H', '6H',
 
             {/* Current Values */}
             <div className="mt-4 grid grid-cols-2 gap-4">
-              <div className="text-center p-3 bg-orange-50 rounded-lg">
-                <div className="text-2xl font-bold text-orange-600">
+              <div className={`text-center p-3 rounded-lg ${
+                isDarkMode ? 'bg-orange-900/30' : 'bg-orange-50'
+              }`}>
+                <div className={`text-2xl font-bold ${
+                  isDarkMode ? 'text-orange-400' : 'text-orange-600'
+                }`}>
                   {filteredData[filteredData.length - 1]?.temperature}°C
                 </div>
-                <div className="text-sm text-gray-600">Suhu Saat Ini</div>
+                <div className={`text-sm ${
+                  isDarkMode ? 'text-slate-400' : 'text-gray-600'
+                }`}>Suhu Saat Ini</div>
               </div>
-              <div className="text-center p-3 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">
+              <div className={`text-center p-3 rounded-lg ${
+                isDarkMode ? 'bg-blue-900/30' : 'bg-blue-50'
+              }`}>
+                <div className={`text-2xl font-bold ${
+                  isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                }`}>
                   {filteredData[filteredData.length - 1]?.humidity}%
                 </div>
-                <div className="text-sm text-gray-600">Kelembaban Saat Ini</div>
+                <div className={`text-sm ${
+                  isDarkMode ? 'text-slate-400' : 'text-gray-600'
+                }`}>Kelembaban Saat Ini</div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="h-80 bg-gray-100 rounded-lg flex items-center justify-center">
+          <div className={`h-80 rounded-lg flex items-center justify-center ${
+            isDarkMode ? 'bg-slate-700' : 'bg-gray-100'
+          }`}>
             <div className="text-center">
-              <div className="text-gray-500 mb-2">📊</div>
-              <p className="text-gray-500">Tidak ada data untuk periode {activeTimeRange}</p>
-              <p className="text-sm text-gray-400 mt-1">Silakan pilih rentang waktu lain</p>
+              <div className={`mb-2 ${
+                isDarkMode ? 'text-slate-400' : 'text-gray-500'
+              }`}>📊</div>
+              <p className={`${
+                isDarkMode ? 'text-slate-400' : 'text-gray-500'
+              }`}>Tidak ada data untuk periode {activeTimeRange}</p>
+              <p className={`text-sm mt-1 ${
+                isDarkMode ? 'text-slate-500' : 'text-gray-400'
+              }`}>Silakan pilih rentang waktu lain</p>
             </div>
           </div>
         )}

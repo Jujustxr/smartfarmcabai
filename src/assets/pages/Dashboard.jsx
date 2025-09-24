@@ -1,6 +1,5 @@
 import Card from '../components/Card'
 import Chart from '../components/Chart'
-import useDarkMode from '../hooks/useDarkMode'
 import { 
   FaThermometerHalf, 
   FaTint, 
@@ -8,11 +7,7 @@ import {
 } from 'react-icons/fa'
 import { FaGear } from 'react-icons/fa6'
 
-const Dashboard = () => {
-  const darkModeHook = useDarkMode()
-  console.log('Dashboard - full hook object:', darkModeHook)
-  const { isDarkMode } = darkModeHook
-  console.log('Dashboard - extracted isDarkMode:', isDarkMode, typeof isDarkMode)
+const Dashboard = ({ isDarkMode }) => {
   // Data sementara untuk chart dashboard
   const generateDashboardChartData = () => {
     const data = []
@@ -46,8 +41,12 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Dashboard</h1>
-          <p className="text-gray-600">Overview sistem monitoring Smart Farm Cabai</p>
+          <h1 className={`text-3xl font-bold mb-2 ${
+            isDarkMode ? 'text-slate-100' : 'text-gray-800'
+          }`}>Dashboard</h1>
+          <p className={`${
+            isDarkMode ? 'text-slate-400' : 'text-gray-600'
+          }`}>Overview sistem monitoring Smart Farm Cabai</p>
         </div>
 
         {/* Stats Cards */}
@@ -101,32 +100,49 @@ const Dashboard = () => {
               title="Overview Suhu & Kelembaban"
               data={dashboardChartData}
               timeRanges={['1H', '3H', '6H']}
+              darkMode={isDarkMode}
             />
           </div>
 
           {/* Recent Activity */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Aktivitas Terbaru</h3>
+          <div className={`p-6 rounded-lg shadow-md ${
+            isDarkMode ? 'bg-slate-800' : 'bg-white'
+          }`}>
+            <h3 className={`text-lg font-semibold mb-4 ${
+              isDarkMode ? 'text-slate-100' : 'text-gray-800'
+            }`}>Aktivitas Terbaru</h3>
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                 <div>
-                  <p className="text-sm font-medium text-gray-800">Pompa air dihidupkan</p>
-                  <p className="text-xs text-gray-500">2 menit yang lalu</p>
+                  <p className={`text-sm font-medium ${
+                    isDarkMode ? 'text-slate-100' : 'text-gray-800'
+                  }`}>Pompa air dihidupkan</p>
+                  <p className={`text-xs ${
+                    isDarkMode ? 'text-slate-400' : 'text-gray-500'
+                  }`}>2 menit yang lalu</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                 <div>
-                  <p className="text-sm font-medium text-gray-800">Suhu mencapai 30°C</p>
-                  <p className="text-xs text-gray-500">5 menit yang lalu</p>
+                  <p className={`text-sm font-medium ${
+                    isDarkMode ? 'text-slate-100' : 'text-gray-800'
+                  }`}>Suhu mencapai 30°C</p>
+                  <p className={`text-xs ${
+                    isDarkMode ? 'text-slate-400' : 'text-gray-500'
+                  }`}>5 menit yang lalu</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                 <div>
-                  <p className="text-sm font-medium text-gray-800">Kelembaban turun ke 60%</p>
-                  <p className="text-xs text-gray-500">10 menit yang lalu</p>
+                  <p className={`text-sm font-medium ${
+                    isDarkMode ? 'text-slate-100' : 'text-gray-800'
+                  }`}>Kelembaban turun ke 60%</p>
+                  <p className={`text-xs ${
+                    isDarkMode ? 'text-slate-400' : 'text-gray-500'
+                  }`}>10 menit yang lalu</p>
                 </div>
               </div>
             </div>

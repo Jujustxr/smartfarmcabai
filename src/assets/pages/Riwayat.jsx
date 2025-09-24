@@ -11,7 +11,7 @@ import {
   FaThermometerHalf
 } from 'react-icons/fa'
 
-const Riwayat = () => {
+const Riwayat = ({ isDarkMode }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('7d')
   const [selectedMetric, setSelectedMetric] = useState('all')
 
@@ -90,13 +90,21 @@ const Riwayat = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'success':
-        return 'bg-green-100 text-green-800 border-green-200'
+        return isDarkMode 
+          ? 'bg-green-900/30 text-green-400 border-green-700' 
+          : 'bg-green-100 text-green-800 border-green-200'
       case 'warning':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+        return isDarkMode 
+          ? 'bg-yellow-900/30 text-yellow-400 border-yellow-700' 
+          : 'bg-yellow-100 text-yellow-800 border-yellow-200'
       case 'error':
-        return 'bg-red-100 text-red-800 border-red-200'
+        return isDarkMode 
+          ? 'bg-red-900/30 text-red-400 border-red-700' 
+          : 'bg-red-100 text-red-800 border-red-200'
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return isDarkMode 
+          ? 'bg-slate-700 text-slate-300 border-slate-600' 
+          : 'bg-gray-100 text-gray-800 border-gray-200'
     }
   }
 
@@ -112,21 +120,33 @@ const Riwayat = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Riwayat Data</h1>
-          <p className="text-gray-600">Catatan historis sistem monitoring dan kontrol</p>
+          <h1 className={`text-3xl font-bold mb-2 ${
+            isDarkMode ? 'text-slate-100' : 'text-gray-800'
+          }`}>Riwayat Data</h1>
+          <p className={`${
+            isDarkMode ? 'text-slate-400' : 'text-gray-600'
+          }`}>Catatan historis sistem monitoring dan kontrol</p>
         </div>
 
         {/* Filters */}
-        <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+        <div className={`p-6 rounded-lg shadow-md mb-6 ${
+          isDarkMode ? 'bg-slate-800' : 'bg-white'
+        }`}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${
+                isDarkMode ? 'text-slate-300' : 'text-gray-700'
+              }`}>
                 Periode Waktu
               </label>
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
+                  isDarkMode 
+                    ? 'bg-slate-700 border-slate-600 text-slate-100' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
               >
                 {periods.map((period) => (
                   <option key={period.value} value={period.value}>
@@ -136,13 +156,19 @@ const Riwayat = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${
+                isDarkMode ? 'text-slate-300' : 'text-gray-700'
+              }`}>
                 Parameter
               </label>
               <select
                 value={selectedMetric}
                 onChange={(e) => setSelectedMetric(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 ${
+                  isDarkMode 
+                    ? 'bg-slate-700 border-slate-600 text-slate-100' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
               >
                 {metrics.map((metric) => (
                   <option key={metric.value} value={metric.value}>
@@ -156,86 +182,152 @@ const Riwayat = () => {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className={`p-6 rounded-lg shadow-md ${
+            isDarkMode ? 'bg-slate-800' : 'bg-white'
+          }`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Total Events</p>
-                <p className="text-2xl font-bold text-gray-800">156</p>
+                <p className={`text-sm ${
+                  isDarkMode ? 'text-slate-400' : 'text-gray-600'
+                }`}>Total Events</p>
+                <p className={`text-2xl font-bold ${
+                  isDarkMode ? 'text-slate-100' : 'text-gray-800'
+                }`}>156</p>
               </div>
-              <div className="bg-blue-100 p-3 rounded-full">
-                <FaInfoCircle className="w-6 h-6 text-blue-600" />
+              <div className={`p-3 rounded-full ${
+                isDarkMode ? 'bg-blue-900/30' : 'bg-blue-100'
+              }`}>
+                <FaInfoCircle className={`w-6 h-6 ${
+                  isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                }`} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className={`p-6 rounded-lg shadow-md ${
+            isDarkMode ? 'bg-slate-800' : 'bg-white'
+          }`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Alerts</p>
-                <p className="text-2xl font-bold text-yellow-600">8</p>
+                <p className={`text-sm ${
+                  isDarkMode ? 'text-slate-400' : 'text-gray-600'
+                }`}>Alerts</p>
+                <p className={`text-2xl font-bold ${
+                  isDarkMode ? 'text-yellow-400' : 'text-yellow-600'
+                }`}>8</p>
               </div>
-              <div className="bg-yellow-100 p-3 rounded-full">
-                <FaExclamationTriangle className="w-6 h-6 text-yellow-600" />
+              <div className={`p-3 rounded-full ${
+                isDarkMode ? 'bg-yellow-900/30' : 'bg-yellow-100'
+              }`}>
+                <FaExclamationTriangle className={`w-6 h-6 ${
+                  isDarkMode ? 'text-yellow-400' : 'text-yellow-600'
+                }`} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className={`p-6 rounded-lg shadow-md ${
+            isDarkMode ? 'bg-slate-800' : 'bg-white'
+          }`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Uptime</p>
-                <p className="text-2xl font-bold text-green-600">99.2%</p>
+                <p className={`text-sm ${
+                  isDarkMode ? 'text-slate-400' : 'text-gray-600'
+                }`}>Uptime</p>
+                <p className={`text-2xl font-bold ${
+                  isDarkMode ? 'text-green-400' : 'text-green-600'
+                }`}>99.2%</p>
               </div>
-              <div className="bg-green-100 p-3 rounded-full">
-                <FaCheckCircle className="w-6 h-6 text-green-600" />
+              <div className={`p-3 rounded-full ${
+                isDarkMode ? 'bg-green-900/30' : 'bg-green-100'
+              }`}>
+                <FaCheckCircle className={`w-6 h-6 ${
+                  isDarkMode ? 'text-green-400' : 'text-green-600'
+                }`} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className={`p-6 rounded-lg shadow-md ${
+            isDarkMode ? 'bg-slate-800' : 'bg-white'
+          }`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Avg Temp</p>
-                <p className="text-2xl font-bold text-orange-600">28.5°C</p>
+                <p className={`text-sm ${
+                  isDarkMode ? 'text-slate-400' : 'text-gray-600'
+                }`}>Avg Temp</p>
+                <p className={`text-2xl font-bold ${
+                  isDarkMode ? 'text-orange-400' : 'text-orange-600'
+                }`}>28.5°C</p>
               </div>
-              <div className="bg-orange-100 p-3 rounded-full">
-                <FaThermometerHalf className="w-6 h-6 text-orange-600" />
+              <div className={`p-3 rounded-full ${
+                isDarkMode ? 'bg-orange-900/30' : 'bg-orange-100'
+              }`}>
+                <FaThermometerHalf className={`w-6 h-6 ${
+                  isDarkMode ? 'text-orange-400' : 'text-orange-600'
+                }`} />
               </div>
             </div>
           </div>
         </div>
 
         {/* Historical Chart */}
-        <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Grafik Historis</h3>
-          <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-            <p className="text-gray-500">Grafik data historis akan ditampilkan di sini</p>
+        <div className={`p-6 rounded-lg shadow-md mb-6 ${
+          isDarkMode ? 'bg-slate-800' : 'bg-white'
+        }`}>
+          <h3 className={`text-lg font-semibold mb-4 ${
+            isDarkMode ? 'text-slate-100' : 'text-gray-800'
+          }`}>Grafik Historis</h3>
+          <div className={`h-64 rounded-lg flex items-center justify-center ${
+            isDarkMode ? 'bg-slate-700' : 'bg-gray-100'
+          }`}>
+            <p className={`${
+              isDarkMode ? 'text-slate-400' : 'text-gray-500'
+            }`}>Grafik data historis akan ditampilkan di sini</p>
           </div>
         </div>
 
         {/* Event Log */}
-        <div className="bg-white rounded-lg shadow-md">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800">Log Aktivitas</h3>
+        <div className={`rounded-lg shadow-md ${
+          isDarkMode ? 'bg-slate-800' : 'bg-white'
+        }`}>
+          <div className={`p-6 border-b ${
+            isDarkMode ? 'border-slate-700' : 'border-gray-200'
+          }`}>
+            <h3 className={`text-lg font-semibold ${
+              isDarkMode ? 'text-slate-100' : 'text-gray-800'
+            }`}>Log Aktivitas</h3>
           </div>
-          <div className="divide-y divide-gray-200">
+          <div className={`divide-y ${
+            isDarkMode ? 'divide-slate-700' : 'divide-gray-200'
+          }`}>
             {historyData.map((event, index) => (
-              <div key={index} className="p-6 hover:bg-gray-50 transition-colors">
+              <div key={index} className={`p-6 transition-colors ${
+                isDarkMode ? 'hover:bg-slate-700' : 'hover:bg-gray-50'
+              }`}>
                 <div className="flex items-start space-x-4">
-                  <div className={`p-2 rounded-full ${getStatusColor(event.status)}`}>
+                  <div className={`p-2 rounded-full border ${getStatusColor(event.status)}`}>
                     {getTypeIcon(event.type)}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-800">
+                        <h4 className={`text-sm font-semibold ${
+                          isDarkMode ? 'text-slate-100' : 'text-gray-800'
+                        }`}>
                           {event.parameter} - {event.value}
                         </h4>
-                        <p className="text-sm text-gray-600 mt-1">{event.message}</p>
+                        <p className={`text-sm mt-1 ${
+                          isDarkMode ? 'text-slate-400' : 'text-gray-600'
+                        }`}>{event.message}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-gray-500">{event.date}</p>
-                        <p className="text-sm text-gray-500">{event.time}</p>
+                        <p className={`text-sm ${
+                          isDarkMode ? 'text-slate-400' : 'text-gray-500'
+                        }`}>{event.date}</p>
+                        <p className={`text-sm ${
+                          isDarkMode ? 'text-slate-400' : 'text-gray-500'
+                        }`}>{event.time}</p>
                       </div>
                     </div>
                   </div>
@@ -245,8 +337,14 @@ const Riwayat = () => {
           </div>
           
           {/* Load More */}
-          <div className="p-6 border-t border-gray-200 text-center">
-            <button className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+          <div className={`p-6 border-t text-center ${
+            isDarkMode ? 'border-slate-700' : 'border-gray-200'
+          }`}>
+            <button className={`px-6 py-2 rounded-lg transition-colors ${
+              isDarkMode 
+                ? 'bg-emerald-600 hover:bg-emerald-700' 
+                : 'bg-green-500 hover:bg-green-600'
+            } text-white`}>
               Muat Lebih Banyak
             </button>
           </div>

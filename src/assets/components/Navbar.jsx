@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import useToggleMenu from '../hooks/useTogglemenu'
-import useDarkMode from '../hooks/useDarkMode'
 import { 
   MdDashboard, 
   MdMonitor, 
@@ -12,9 +11,9 @@ import {
   MdLightMode
 } from 'react-icons/md'
 
-const Navbar = ({ currentPage, setCurrentPage }) => {
+const Navbar = ({ currentPage, setCurrentPage, isDarkMode, toggleDarkMode }) => {
   const { isMenuOpen, toggleMenu, closeMenu } = useToggleMenu()
-  const { isDarkMode, toggleDarkMode } = useDarkMode()
+
 
   const menuItems = [
     { 
@@ -255,24 +254,6 @@ const Navbar = ({ currentPage, setCurrentPage }) => {
               >
                 <span><MdHistory className="w-5 h-5" /></span>
                 <span>Riwayat</span>
-              </button>
-
-              {/* Dark Mode Toggle Mobile */}
-              <button
-                onClick={() => {
-                  toggleDarkMode()
-                  closeMenu()
-                }}
-                className={`w-full text-left px-4 py-3 text-sm font-medium transition-all duration-200 flex items-center space-x-3 ${isDarkMode ? 'text-gray-300 hover:text-green-400 hover:bg-gray-700' : 'text-pink-600 hover:text-green-600 hover:bg-pink-200'}`}
-              >
-                <span>
-                  {isDarkMode ? (
-                    <MdLightMode className="w-5 h-5" />
-                  ) : (
-                    <MdDarkMode className="w-5 h-5" />
-                  )}
-                </span>
-                <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
               </button>
             </div>
           </div>
