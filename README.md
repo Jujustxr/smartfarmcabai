@@ -1,4 +1,6 @@
 # React + Vite
+# JANGAN LUPA npm install terlebih dahulu karena node modulenya ga masuk ke github
+
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
