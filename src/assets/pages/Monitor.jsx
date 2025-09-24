@@ -1,0 +1,203 @@
+import React from 'react'
+import SensorCard from '../components/SensorCard'
+import Chart from '../components/Chart'
+import { 
+  FaThermometerHalf, 
+  FaTint, 
+  FaFlask, 
+  FaSeedling, 
+  FaSun, 
+  FaLeaf 
+} from 'react-icons/fa'
+
+const Monitor = () => {
+  // Data sementara untuk chart (simulasi data real-time)
+  const generateChartData = () => {
+    const data = []
+    const now = new Date()
+    
+    // Generate data untuk 24 jam terakhir (setiap 30 menit)
+    for (let i = 48; i >= 0; i--) {
+      const timestamp = new Date(now.getTime() - (i * 30 * 60 * 1000))
+      const hours = timestamp.getHours()
+      const minutes = timestamp.getMinutes()
+      
+      // Simulasi pola suhu dan kelembaban yang realistis
+      const baseTemp = 26 + Math.sin((hours - 6) * Math.PI / 12) * 4 + Math.random() * 2
+      const baseHumidity = 65 + Math.cos((hours - 12) * Math.PI / 12) * 10 + Math.random() * 5
+      
+      data.push({
+        timestamp: timestamp.toISOString(),
+        time: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`,
+        temperature: Math.round(baseTemp * 10) / 10,
+        humidity: Math.round(baseHumidity * 10) / 10,
+      })
+    }
+    
+    return data
+  }
+
+  const chartData = generateChartData()
+  
+  // Simulasi nilai sensor real-time
+  const suhuSensor = (26 + Math.sin(Date.now() / 100000) * 3 + Math.random() * 1).toFixed(1)
+  const kelembabanUdara = Math.floor(60 + Math.cos(Date.now() / 120000) * 15 + Math.random() * 5)
+  const phTanah = (6.5 + Math.sin(Date.now() / 150000) * 0.3 + Math.random() * 0.2).toFixed(1)
+  const kelembabanTanah = Math.floor(40 + Math.cos(Date.now() / 180000) * 20 + Math.random() * 10)
+  const intensitasCahaya = Math.floor(700 + Math.sin(Date.now() / 90000) * 200 + Math.random() * 100)
+  const nutrisiEC = (1.8 + Math.cos(Date.now() / 200000) * 0.4 + Math.random() * 0.3).toFixed(1)
+
+  return (
+    <div className="p-6 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Monitor Sensor</h1>
+          <p className="text-gray-600">Real-time monitoring parameter lingkungan</p>
+        </div>
+
+        {/* Sensor Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {/* Sensor Suhu */}
+          <SensorCard
+            title="Sensor Suhu"
+            icon={<FaThermometerHalf className="w-6 h-6" />}
+            value={suhuSensor}
+            unit="°C"
+            status={parseFloat(suhuSensor) > 32 ? 'warning' : 'normal'}
+            normalRange="25-32°C"
+            progressValue={Math.min(Math.max((parseFloat(suhuSensor) - 20) / 15 * 100, 0), 100)}
+            valueColor="text-orange-600"
+            progressColor="bg-orange-500"
+          />
+
+          {/* Sensor Kelembaban Udara */}
+          <SensorCard
+            title="Kelembaban Udara"
+            icon={<FaTint className="w-6 h-6" />}
+            value={kelembabanUdara}
+            unit="%"
+            status={kelembabanUdara < 50 || kelembabanUdara > 80 ? 'warning' : 'normal'}
+            normalRange="50-80%"
+            progressValue={kelembabanUdara}
+            valueColor="text-blue-600"
+            progressColor="bg-blue-500"
+          />
+
+          {/* Sensor pH */}
+          <SensorCard
+            title="pH Tanah"
+            icon={<FaFlask className="w-6 h-6" />}
+            value={phTanah}
+            unit=""
+            status={parseFloat(phTanah) < 6.0 || parseFloat(phTanah) > 7.0 ? 'warning' : 'normal'}
+            normalRange="6.0-7.0"
+            progressValue={Math.min(Math.max((parseFloat(phTanah) - 5.5) / 2 * 100, 0), 100)}
+            valueColor="text-green-600"
+            progressColor="bg-green-500"
+          />
+
+          {/* Kelembaban Tanah */}
+          <SensorCard
+            title="Kelembaban Tanah"
+            icon={<FaSeedling className="w-6 h-6" />}
+            value={kelembabanTanah}
+            unit="%"
+            status={kelembabanTanah < 50 ? 'warning' : 'normal'}
+            normalRange="50-70%"
+            progressValue={kelembabanTanah}
+            valueColor={kelembabanTanah < 50 ? "text-yellow-600" : "text-green-600"}
+            progressColor={kelembabanTanah < 50 ? "bg-yellow-500" : "bg-green-500"}
+          />
+
+          {/* Intensitas Cahaya */}
+          <SensorCard
+            title="Intensitas Cahaya"
+            icon={<FaSun className="w-6 h-6" />}
+            value={intensitasCahaya}
+            unit=" Lux"
+            status={intensitasCahaya < 500 || intensitasCahaya > 1200 ? 'warning' : 'normal'}
+            normalRange="500-1200 Lux"
+            progressValue={Math.min(Math.max((intensitasCahaya - 300) / 900 * 100, 0), 100)}
+            valueColor="text-yellow-500"
+            progressColor="bg-yellow-400"
+          />
+
+          {/* Nutrisi (EC) */}
+          <SensorCard
+            title="Nutrisi (EC)"
+            icon={<FaLeaf className="w-6 h-6" />}
+            value={nutrisiEC}
+            unit=" mS"
+            status={parseFloat(nutrisiEC) < 1.5 || parseFloat(nutrisiEC) > 2.5 ? 'warning' : 'normal'}
+            normalRange="1.5-2.5 mS"
+            progressValue={Math.min(Math.max((parseFloat(nutrisiEC) - 1.0) / 2.0 * 100, 0), 100)}
+            valueColor="text-purple-600"
+            progressColor="bg-purple-500"
+          />
+        </div>
+
+        {/* Real-time Chart */}
+        <div className="mb-6">
+          <Chart 
+            title="Grafik Suhu & Kelembaban Real-time"
+            data={chartData}
+            timeRanges={['1H', '6H', '24H']}
+          />
+        </div>
+
+        {/* Alert System */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Sistem Peringatan</h3>
+          <div className="space-y-3">
+            {/* Warning untuk kelembaban tanah rendah */}
+            {kelembabanTanah < 50 && (
+              <div className="flex items-center space-x-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                <div>
+                  <p className="text-sm font-medium text-yellow-800">Kelembaban tanah rendah ({kelembabanTanah}%)</p>
+                  <p className="text-xs text-yellow-600">Diperlukan penyiraman segera</p>
+                </div>
+              </div>
+            )}
+
+            {/* Warning untuk suhu tinggi */}
+            {parseFloat(suhuSensor) > 32 && (
+              <div className="flex items-center space-x-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <div>
+                  <p className="text-sm font-medium text-red-800">Suhu terlalu tinggi ({suhuSensor}°C)</p>
+                  <p className="text-xs text-red-600">Aktifkan sistem pendingin</p>
+                </div>
+              </div>
+            )}
+
+            {/* Warning untuk pH tidak normal */}
+            {(parseFloat(phTanah) < 6.0 || parseFloat(phTanah) > 7.0) && (
+              <div className="flex items-center space-x-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                <div>
+                  <p className="text-sm font-medium text-orange-800">pH tanah tidak optimal ({phTanah})</p>
+                  <p className="text-xs text-orange-600">Lakukan penyesuaian pH tanah</p>
+                </div>
+              </div>
+            )}
+
+            {/* Status normal jika semua parameter aman */}
+            {kelembabanTanah >= 50 && parseFloat(suhuSensor) <= 32 && parseFloat(phTanah) >= 6.0 && parseFloat(phTanah) <= 7.0 && (
+              <div className="flex items-center space-x-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <div>
+                  <p className="text-sm font-medium text-green-800">Semua parameter dalam kondisi normal</p>
+                  <p className="text-xs text-green-600">Sistem berjalan dengan baik</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default Monitor
