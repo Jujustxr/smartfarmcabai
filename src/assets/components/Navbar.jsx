@@ -14,30 +14,6 @@ import {
 const Navbar = ({ currentPage, setCurrentPage, isDarkMode, toggleDarkMode }) => {
   const { isMenuOpen, toggleMenu, closeMenu } = useToggleMenu()
 
-
-  const menuItems = [
-    { 
-      id: 'dashboard', 
-      label: 'Dashboard', 
-      icon: <MdDashboard className="w-5 h-5" />
-    },
-    { 
-      id: 'monitor', 
-      label: 'Monitor', 
-      icon: <MdMonitor className="w-5 h-5" />
-    },
-    { 
-      id: 'kontrol', 
-      label: 'Kontrol Akuator', 
-      icon: <MdSettings className="w-5 h-5" />
-    },
-    { 
-      id: 'riwayat', 
-      label: 'Riwayat', 
-      icon: <MdHistory className="w-5 h-5" />
-    }
-  ]
-
   return (
     <nav className={`shadow-lg border-b transition-colors duration-300 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-pink-100 border-pink-300'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
