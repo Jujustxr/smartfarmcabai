@@ -135,6 +135,3 @@ If you have any questions or suggestions, please open an [issue](https://github.
 
 ⭐ **Don’t forget to give a star if you find this project useful!** ⭐
 
----
-
-Mau aku bikin versi **lebih ringkas** (kayak README singkat untuk GitHub repo) juga, biar gampang dipakai langsung?
