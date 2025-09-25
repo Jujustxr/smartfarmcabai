@@ -26,42 +26,44 @@ const Register = ({ onRegister, switchMode }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white">
-      {/* Judul Welcome */}
-      <h1 className="text-4xl font-bold text-red-800 mb-2">WELCOME</h1>
-      <p className="text-gray-700 mb-6">Monitor your chilies with us</p>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white px-4">
+      {/* Welcome Title */}
+      <h1 className="text-5xl md:text-6xl font-extrabold text-[#a32116]">WELCOME</h1>
+      <p className="text-[#a32116] mt-2 text-lg">Monitor your chilies with us</p>
 
       {/* Card Register */}
       <form
         onSubmit={handleRegister}
-        className="bg-red-800 rounded-lg shadow-lg mt-10 w-full max-w-md p-8 text-center"
+        className="bg-[#a32116] rounded-lg shadow-lg mt-10 w-full max-w-md p-8 text-center"
       >
-        <h2 className="text-xl font-bold mb-4 text-center">REGISTER</h2>
-        {error && <p className="text-yellow-300 text-sm mb-3">{error}</p>}
+        <h2 className="text-2xl font-bold mb-6 text-white">REGISTER</h2>
+        {error && <p className="text-yellow-300 text-sm mb-4">{error}</p>}
+
         <input
           type="email"
           placeholder="Email"
-          className="w-full p-2 mb-3 rounded-full text-black"
+          className="w-full px-4 py-3 rounded-full bg-white text-[#a32116] placeholder-[#a32116] outline-none mb-4"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
         <input
           type="password"
           placeholder="Password"
-          className="w-full p-2 mb-4 rounded-full text-black"
+          className="w-full px-4 py-3 rounded-full bg-white text-[#a32116] placeholder-[#a32116] outline-none mb-6"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
         <button
           type="submit"
-          className="w-full bg-white text-red-800 font-semibold p-2 rounded-full"
+          className="w-full py-3 rounded-full bg-white text-[#a32116] font-semibold hover:bg-gray-100 transition"
         >
           Register
         </button>
-        <p className="text-sm mt-3 text-center text-white">
+
+        <p className="mt-6 text-sm text-white">
           Already have an account?{" "}
           <span
-            className="text-yellow-300 cursor-pointer font-semibold"
+            className="text-yellow-300 font-semibold cursor-pointer hover:underline"
             onClick={switchMode}
           >
             Login
