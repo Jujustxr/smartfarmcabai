@@ -14,7 +14,7 @@ const KontrolAkuator = ({ isDarkMode }) => {
   const [sprinklerStatus, setSprinklerStatus] = useState(false)
 
   return (
-    <div className="p-6 min-h-screen">
+    <div className={`p-6 min-h-screen ${isDarkMode ? "bg-slate-900" : "bg-white"}`}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
