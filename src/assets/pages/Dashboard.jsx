@@ -1,13 +1,9 @@
-import { useEffect, useState } from "react"
-import Card from '../components/Card'
-import Chart from '../components/Chart'
-import { 
-  FaThermometerHalf, 
-  FaTint, 
-  FaFlask
-} from 'react-icons/fa'
-import { FaGear } from 'react-icons/fa6'
-import { supabase } from "../../lib/supabaseClient"   // pastikan path ini benar
+import { useEffect, useState, useCallback } from "react";
+import Card from '../components/Card';
+import Chart from '../components/Chart';
+import { FaThermometerHalf, FaTint, FaFlask } from 'react-icons/fa';
+import { FaGear } from 'react-icons/fa6';
+import { fetchLatestSensorData, fetchHistoricalData, subscribeToSensorData } from "./API/api";
 
 const Dashboard = ({ isDarkMode }) => {
   const [sensorData, setSensorData] = useState({
@@ -15,67 +11,92 @@ const Dashboard = ({ isDarkMode }) => {
     kelembaban: 0,
     ph: 0,
     pompa: "Mati"
-  })
-  const [chartData, setChartData] = useState([])
+  });
+  const [chartData, setChartData] = useState([]);
+  const [sensorStatus, setSensorStatus] = useState("offline");
+  const [lastUpdateTime, setLastUpdateTime] = useState(null);
 
-  // Ambil data terakhir untuk stats cards
-  const fetchData = async () => {
-    const { data, error } = await supabase
-      .from("sensor_data")
-      .select("*")      // ambil semua kolom
-      .order("created_at", { ascending: false }) // data terbaru
-      .limit(1);        // hanya 1 record terakhir
+  // Format timestamp for chart
+  const formatChartTime = (timestamp) => {
+    return new Date(timestamp).toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
 
-    if (error) {
-      console.error(error);
-      return;
-    }
+  // Handle new sensor data
+  const handleNewSensorData = useCallback((newData) => {
+    const timestamp = new Date(newData.created_at);
+    setLastUpdateTime(timestamp);
 
-    if (data && data.length > 0) {
-      const d = data[0];
-      setSensorData({
-        suhu: d.temperature,
-        kelembaban: d.humidity,
-        ph: d.soil_percent,      // contoh pakai soil_percent
-        pompa: "Auto"            // default, bisa diganti jika ada kolom pompa_status
-      });
-    }
-  }
+    // Update sensor cards
+    setSensorData({
+      suhu: newData.temperature,
+      kelembaban: newData.humidity,
+      ph: newData.soil_percent,
+      pompa: newData.pump_status || "Auto"
+    });
 
-  // Ambil seluruh data untuk chart
-  const fetchChart = async () => {
-    const { data, error } = await supabase
-      .from("sensor_data")
-      .select("*")               // ambil semua kolom
-      .order("created_at", { ascending: true }); // semua data kronologis
+    // Update chart data
+    setChartData(prev => [...prev, {
+      time: formatChartTime(timestamp),
+      temperature: newData.temperature,
+      humidity: newData.humidity
+    }].slice(-100)); // Keep last 100 readings
 
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    if (data) {
-      const mapped = data.map(item => ({
-        time: new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        temperature: item.temperature,
-        humidity: item.humidity
-      }));
-      setChartData(mapped);
-    }
-  }
+    setSensorStatus('online');
+  }, []);
 
   useEffect(() => {
-    fetchData()
-    fetchChart()
+    let subscription;
 
-    // refresh tiap 30 detik
-    const interval = setInterval(() => {
-      fetchData()
-      fetchChart()
-    }, 5000)
+    const initialize = async () => {
+      try {
+        // Get latest sensor reading
+        const latestData = await fetchLatestSensorData();
+        if (latestData) {
+          handleNewSensorData(latestData);
+        }
 
-    return () => clearInterval(interval)
-  }, [])
+        // Get historical data for chart
+        const historyData = await fetchHistoricalData(100);
+        if (historyData) {
+          setChartData(historyData.map(item => ({
+            time: formatChartTime(item.created_at),
+            temperature: item.temperature,
+            humidity: item.humidity
+          })));
+        }
+
+        // Setup real-time subscription
+        subscription = subscribeToSensorData(handleNewSensorData);
+
+      } catch (error) {
+        console.error("Error initializing dashboard:", error);
+        setSensorStatus('offline');
+      }
+    };
+
+    initialize();
+
+    // Monitor sensor status
+    const statusCheck = setInterval(() => {
+      if (lastUpdateTime) {
+        const timeSinceLastUpdate = (new Date() - lastUpdateTime) / 1000;
+        if (timeSinceLastUpdate > 10) {
+          setSensorStatus('offline');
+        }
+      }
+    }, 5000);
+
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+      clearInterval(statusCheck);
+    };
+  }, [handleNewSensorData, lastUpdateTime]);
 
   return (
     <div className="p-6 min-h-screen">
@@ -84,70 +105,32 @@ const Dashboard = ({ isDarkMode }) => {
         <div className="mb-8">
           <h1 className={`text-3xl font-bold mb-2 ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`}>Dashboard</h1>
           <p className={`${isDarkMode ? 'text-slate-400' : 'text-gray-600'}`}>Overview sistem monitoring Smart Farm Cabai</p>
+          <p className={`font-semibold mt-2 ${sensorStatus === "online" ? 'text-green-500' : 'text-red-500'}`}>
+            Sensor Status: {sensorStatus.toUpperCase()}
+          </p>
         </div>
 
-        {/* Stats Cards */}
+        {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card
-            title="Sensor Suhu"
-            icon={<FaThermometerHalf className="w-6 h-6" />}
-            value={sensorData.suhu}
-            unit="°C"
-            normalRange="25-32°C"
-            darkMode={isDarkMode}
-          />
-
-          <Card
-            title="Sensor Kelembaban"
-            icon={<FaTint className="w-6 h-6" />}
-            value={sensorData.kelembaban}
-            unit="%"
-            normalRange="60-80%"
-            darkMode={isDarkMode}
-          />
-
-          <Card
-            title="Sensor pH Tanah"
-            icon={<FaFlask className="w-6 h-6" />}
-            value={sensorData.ph}
-            unit=""
-            normalRange="6.0-7.0"
-            darkMode={isDarkMode}
-          />
-
-          <Card
-            title="Status Pompa Air"
-            icon={<FaGear className="w-6 h-6" />}
-            value={sensorData.pompa}
-            unit=""
-            normalRange="Auto Mode"
-            darkMode={isDarkMode}
-          />
+          <Card title="Sensor Suhu" icon={<FaThermometerHalf />} value={sensorData.suhu} unit="°C" normalRange="25-32°C" darkMode={isDarkMode} />
+          <Card title="Sensor Kelembaban" icon={<FaTint />} value={sensorData.kelembaban} unit="%" normalRange="60-80%" darkMode={isDarkMode} />
+          <Card title="Sensor pH Tanah" icon={<FaFlask />} value={sensorData.ph} unit="" normalRange="6.0-7.0" darkMode={isDarkMode} />
+          <Card title="Status Pompa Air" icon={<FaGear />} value={sensorData.pompa} unit="" normalRange="Auto Mode" darkMode={isDarkMode} />
         </div>
 
-        {/* Charts and Recent Activity */}
+        {/* Charts & Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <Chart 
-              title="Overview Suhu & Kelembaban"
-              data={chartData}
-              timeRanges={['1H', '3H', '6H']}
-              darkMode={isDarkMode}
-            />
-          </div>
-
+          <Chart title="Overview Suhu & Kelembaban" data={chartData} timeRanges={['1H','3H','6H']} darkMode={isDarkMode} />
           <div className={`p-6 rounded-lg shadow-md ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}>
             <h3 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`}>Aktivitas Terbaru</h3>
-            <div className="space-y-4">
-              <p className="text-sm text-gray-500">
-                (Aktivitas terbaru bisa ditarik juga dari tabel log Supabase, misalnya `pump_log`)
-              </p>
-            </div>
+            <p className="text-sm text-gray-500">
+              Last update: {lastUpdateTime ? new Date(lastUpdateTime).toLocaleString() : 'Never'}
+            </p>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

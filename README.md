@@ -71,33 +71,43 @@ Smart Farm Cabai adalah aplikasi web modern untuk monitoring dan kontrol sistem 
 ## 📁 Struktur Project
 
 ```
-smartfarmcabai/
-├── public/                 # Static assets
+SMARTFARM/
+├── node_modules/
 ├── src/
 │   ├── assets/
-│   │   ├── components/     # Reusable components
-│   │   │   ├── AktuatorCard.jsx
-│   │   │   ├── Button.jsx
-│   │   │   ├── Card.jsx
-│   │   │   ├── Chart.jsx
-│   │   │   ├── Navbar.jsx
-│   │   │   ├── PageTransition.jsx
-│   │   │   └── SensorCard.jsx
-│   │   ├── hooks/          # Custom React hooks
-│   │   │   ├── useDarkMode.js
-│   │   │   └── useTogglemenu.js
-│   │   └── pages/          # Page components
-│   │       ├── Dashboard.jsx
-│   │       ├── KontrolAkuator.jsx
-│   │       ├── Monitor.jsx
-│   │       └── Riwayat.jsx
-│   ├── App.jsx             # Main App component
-│   ├── main.jsx            # Entry point
-│   └── index.css           # Global styles
-├── eslint.config.js        # ESLint configuration
-├── tailwind.config.js      # Tailwind configuration
-├── vite.config.js          # Vite configuration
-└── package.json            # Dependencies & scripts
+│   ├── components/
+│   │   ├── AktuatorCard.jsx
+│   │   ├── Button.jsx
+│   │   ├── Card.jsx
+│   │   ├── Chart.jsx
+│   │   ├── Navbar.jsx
+│   │   ├── PageTransition.jsx
+│   │   └── SensorCard.jsx
+│   ├── hooks/
+│   │   ├── useDarkMode.js
+│   │   └── useTogglemenu.js
+│   ├── pages/
+│   │   ├── API/
+│   │   │   └── checkSensor.js
+│   │   ├── Dashboard.jsx
+│   │   ├── KontrolAktuator.jsx
+│   │   ├── Monitor.jsx
+│   │   └── Riwayat.jsx
+│   ├── lib/
+│   │   └── supabaseClient.ts
+│   ├── App.jsx
+│   ├── index.css
+│   └── main.jsx
+├── .env
+├── .gitignore
+├── env.d.ts
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── README.md
+├── tailwind.config.js
+└── vite.config.js
 ```
 
 ## 🎨 Preview
