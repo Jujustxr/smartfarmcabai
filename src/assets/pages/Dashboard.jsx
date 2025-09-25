@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react"
 import Card from '../components/Card'
 import Chart from '../components/Chart'
 import { 
@@ -6,35 +7,76 @@ import {
   FaFlask
 } from 'react-icons/fa'
 import { FaGear } from 'react-icons/fa6'
+import { supabase } from "../../lib/supabaseClient"   // pastikan path ini benar
 
 const Dashboard = ({ isDarkMode }) => {
-  // Data sementara untuk chart dashboard
-  const generateDashboardChartData = () => {
-    const data = []
-    const now = new Date()
-    
-    // Generate data untuk 6 jam terakhir (setiap 15 menit untuk dashboard overview)
-    for (let i = 24; i >= 0; i--) {
-      const timestamp = new Date(now.getTime() - (i * 15 * 60 * 1000))
-      const hours = timestamp.getHours()
-      const minutes = timestamp.getMinutes()
-      
-      // Pola data yang sedikit lebih stabil untuk dashboard
-      const baseTemp = 27 + Math.sin((hours - 8) * Math.PI / 10) * 3 + Math.random() * 1.5
-      const baseHumidity = 63 + Math.cos((hours - 14) * Math.PI / 10) * 8 + Math.random() * 3
-      
-      data.push({
-        timestamp: timestamp.toISOString(),
-        time: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`,
-        temperature: Math.round(baseTemp * 10) / 10,
-        humidity: Math.round(baseHumidity * 10) / 10,
+  const [sensorData, setSensorData] = useState({
+    suhu: 0,
+    kelembaban: 0,
+    ph: 0,
+    pompa: "Mati"
+  })
+  const [chartData, setChartData] = useState([])
+
+  // Ambil data terakhir dari Supabase
+  const fetchData = async () => {
+    let { data, error } = await supabase
+      .from("sensor_data")   // ganti dengan nama tabelmu
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(1)
+
+    if (error) {
+      console.error(error)
+      return
+    }
+
+    if (data && data.length > 0) {
+      const d = data[0]
+      setSensorData({
+        suhu: d.suhu,
+        kelembaban: d.kelembaban,
+        ph: d.ph,
+        pompa: d.pompa_status ? "Aktif" : "Mati"
       })
     }
-    
-    return data
   }
 
-  const dashboardChartData = generateDashboardChartData()
+  // Ambil data chart (misalnya 6 jam terakhir)
+  const fetchChart = async () => {
+    let { data, error } = await supabase
+      .from("sensor_data")
+      .select("suhu, kelembaban, created_at")
+      .order("created_at", { ascending: true })
+      .limit(24) // misalnya 6 jam dengan interval 15 menit
+
+    if (error) {
+      console.error(error)
+      return
+    }
+
+    if (data) {
+      const mapped = data.map(item => ({
+        time: new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        temperature: item.suhu,
+        humidity: item.kelembaban
+      }))
+      setChartData(mapped)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+    fetchChart()
+
+    // refresh tiap 30 detik
+    const interval = setInterval(() => {
+      fetchData()
+      fetchChart()
+    }, 30000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className="p-6 min-h-screen">
@@ -51,41 +93,37 @@ const Dashboard = ({ isDarkMode }) => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Card Sensor Suhu */}
           <Card
             title="Sensor Suhu"
             icon={<FaThermometerHalf className="w-6 h-6" />}
-            value="28"
+            value={sensorData.suhu}
             unit="°C"
             normalRange="25-32°C"
             darkMode={isDarkMode}
           />
 
-          {/* Card Sensor Kelembaban */}
           <Card
             title="Sensor Kelembaban"
             icon={<FaTint className="w-6 h-6" />}
-            value="65"
+            value={sensorData.kelembaban}
             unit="%"
             normalRange="60-80%"
             darkMode={isDarkMode}
           />
 
-          {/* Card Sensor pH Tanah */}
           <Card
             title="Sensor pH Tanah"
             icon={<FaFlask className="w-6 h-6" />}
-            value="6.8"
+            value={sensorData.ph}
             unit=""
             normalRange="6.0-7.0"
             darkMode={isDarkMode}
           />
 
-          {/* Card Status Pompa Air */}
           <Card
             title="Status Pompa Air"
             icon={<FaGear className="w-6 h-6" />}
-            value="Aktif"
+            value={sensorData.pompa}
             unit=""
             normalRange="Auto Mode"
             darkMode={isDarkMode}
@@ -94,17 +132,15 @@ const Dashboard = ({ isDarkMode }) => {
 
         {/* Charts and Recent Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Chart Area */}
           <div>
             <Chart 
               title="Overview Suhu & Kelembaban"
-              data={dashboardChartData}
+              data={chartData}
               timeRanges={['1H', '3H', '6H']}
               darkMode={isDarkMode}
             />
           </div>
 
-          {/* Recent Activity */}
           <div className={`p-6 rounded-lg shadow-md ${
             isDarkMode ? 'bg-slate-800' : 'bg-white'
           }`}>
@@ -112,39 +148,9 @@ const Dashboard = ({ isDarkMode }) => {
               isDarkMode ? 'text-slate-100' : 'text-gray-800'
             }`}>Aktivitas Terbaru</h3>
             <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <div>
-                  <p className={`text-sm font-medium ${
-                    isDarkMode ? 'text-slate-100' : 'text-gray-800'
-                  }`}>Pompa air dihidupkan</p>
-                  <p className={`text-xs ${
-                    isDarkMode ? 'text-slate-400' : 'text-gray-500'
-                  }`}>2 menit yang lalu</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <div>
-                  <p className={`text-sm font-medium ${
-                    isDarkMode ? 'text-slate-100' : 'text-gray-800'
-                  }`}>Suhu mencapai 30°C</p>
-                  <p className={`text-xs ${
-                    isDarkMode ? 'text-slate-400' : 'text-gray-500'
-                  }`}>5 menit yang lalu</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <div>
-                  <p className={`text-sm font-medium ${
-                    isDarkMode ? 'text-slate-100' : 'text-gray-800'
-                  }`}>Kelembaban turun ke 60%</p>
-                  <p className={`text-xs ${
-                    isDarkMode ? 'text-slate-400' : 'text-gray-500'
-                  }`}>10 menit yang lalu</p>
-                </div>
-              </div>
+              <p className="text-sm text-gray-500">
+                (Aktivitas terbaru bisa ditarik juga dari tabel log Supabase, misalnya `pump_log`)
+              </p>
             </div>
           </div>
         </div>
