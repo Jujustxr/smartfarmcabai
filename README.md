@@ -1,6 +1,4 @@
-Here’s the English translation of your text:
 
----
 
 # 🌶️ Smart Farm Chili
 
