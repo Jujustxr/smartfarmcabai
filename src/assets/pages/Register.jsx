@@ -13,7 +13,6 @@ const Register = ({ onRegister, switchMode }) => {
       await createUserWithEmailAndPassword(auth, email, password);
       onRegister(); // update user di App.jsx
     } catch (err) {
-      // Tampilkan pesan error sesuai kode error dari Firebase
       if (err.code === "auth/email-already-in-use") {
         setError("Email sudah terdaftar!");
       } else if (err.code === "auth/invalid-email") {
@@ -27,37 +26,42 @@ const Register = ({ onRegister, switchMode }) => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-pink-100">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white">
+      {/* Judul Welcome */}
+      <h1 className="text-4xl font-bold text-red-800 mb-2">WELCOME</h1>
+      <p className="text-gray-700 mb-6">Monitor your chilies with us</p>
+
+      {/* Card Register */}
       <form
         onSubmit={handleRegister}
-        className="bg-white shadow-md rounded-2xl p-6 w-80"
+        className="bg-red-800 text-white shadow-md rounded-2xl p-6 w-80"
       >
-        <h2 className="text-xl font-bold mb-4 text-center">Register</h2>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        <h2 className="text-xl font-bold mb-4 text-center">REGISTER</h2>
+        {error && <p className="text-yellow-300 text-sm mb-3">{error}</p>}
         <input
           type="email"
           placeholder="Email"
-          className="border w-full p-2 mb-3 rounded"
+          className="w-full p-2 mb-3 rounded-full text-black"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
         <input
           type="password"
           placeholder="Password"
-          className="border w-full p-2 mb-4 rounded"
+          className="w-full p-2 mb-4 rounded-full text-black"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
         <button
           type="submit"
-          className="w-full bg-pink-400 text-white p-2 rounded"
+          className="w-full bg-white text-red-800 font-semibold p-2 rounded-full"
         >
           Register
         </button>
-        <p className="text-sm mt-3 text-center">
-          Sudah punya akun?{" "}
+        <p className="text-sm mt-3 text-center text-white">
+          Already have an account?{" "}
           <span
-            className="text-blue-500 cursor-pointer"
+            className="text-yellow-300 cursor-pointer font-semibold"
             onClick={switchMode}
           >
             Login
