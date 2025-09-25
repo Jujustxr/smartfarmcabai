@@ -18,50 +18,49 @@ const Dashboard = ({ isDarkMode }) => {
   })
   const [chartData, setChartData] = useState([])
 
-  // Ambil data terakhir dari Supabase
+  // Ambil data terakhir untuk stats cards
   const fetchData = async () => {
-    let { data, error } = await supabase
-      .from("sensor_data")   // ganti dengan nama tabelmu
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(1)
+    const { data, error } = await supabase
+      .from("sensor_data")
+      .select("*")      // ambil semua kolom
+      .order("created_at", { ascending: false }) // data terbaru
+      .limit(1);        // hanya 1 record terakhir
 
     if (error) {
-      console.error(error)
-      return
+      console.error(error);
+      return;
     }
 
     if (data && data.length > 0) {
-      const d = data[0]
+      const d = data[0];
       setSensorData({
-        suhu: d.suhu,
-        kelembaban: d.kelembaban,
-        ph: d.ph,
-        pompa: d.pompa_status ? "Aktif" : "Mati"
-      })
+        suhu: d.temperature,
+        kelembaban: d.humidity,
+        ph: d.soil_percent,      // contoh pakai soil_percent
+        pompa: "Auto"            // default, bisa diganti jika ada kolom pompa_status
+      });
     }
   }
 
-  // Ambil data chart (misalnya 6 jam terakhir)
+  // Ambil seluruh data untuk chart
   const fetchChart = async () => {
-    let { data, error } = await supabase
+    const { data, error } = await supabase
       .from("sensor_data")
-      .select("suhu, kelembaban, created_at")
-      .order("created_at", { ascending: true })
-      .limit(24) // misalnya 6 jam dengan interval 15 menit
+      .select("*")               // ambil semua kolom
+      .order("created_at", { ascending: true }); // semua data kronologis
 
     if (error) {
-      console.error(error)
-      return
+      console.error(error);
+      return;
     }
 
     if (data) {
       const mapped = data.map(item => ({
         time: new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        temperature: item.suhu,
-        humidity: item.kelembaban
-      }))
-      setChartData(mapped)
+        temperature: item.temperature,
+        humidity: item.humidity
+      }));
+      setChartData(mapped);
     }
   }
 
@@ -73,7 +72,7 @@ const Dashboard = ({ isDarkMode }) => {
     const interval = setInterval(() => {
       fetchData()
       fetchChart()
-    }, 30000)
+    }, 5000)
 
     return () => clearInterval(interval)
   }, [])
@@ -83,12 +82,8 @@ const Dashboard = ({ isDarkMode }) => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className={`text-3xl font-bold mb-2 ${
-            isDarkMode ? 'text-slate-100' : 'text-gray-800'
-          }`}>Dashboard</h1>
-          <p className={`${
-            isDarkMode ? 'text-slate-400' : 'text-gray-600'
-          }`}>Overview sistem monitoring Smart Farm Cabai</p>
+          <h1 className={`text-3xl font-bold mb-2 ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`}>Dashboard</h1>
+          <p className={`${isDarkMode ? 'text-slate-400' : 'text-gray-600'}`}>Overview sistem monitoring Smart Farm Cabai</p>
         </div>
 
         {/* Stats Cards */}
@@ -141,12 +136,8 @@ const Dashboard = ({ isDarkMode }) => {
             />
           </div>
 
-          <div className={`p-6 rounded-lg shadow-md ${
-            isDarkMode ? 'bg-slate-800' : 'bg-white'
-          }`}>
-            <h3 className={`text-lg font-semibold mb-4 ${
-              isDarkMode ? 'text-slate-100' : 'text-gray-800'
-            }`}>Aktivitas Terbaru</h3>
+          <div className={`p-6 rounded-lg shadow-md ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}>
+            <h3 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`}>Aktivitas Terbaru</h3>
             <div className="space-y-4">
               <p className="text-sm text-gray-500">
                 (Aktivitas terbaru bisa ditarik juga dari tabel log Supabase, misalnya `pump_log`)
