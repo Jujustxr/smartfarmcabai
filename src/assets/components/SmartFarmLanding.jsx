@@ -6,25 +6,27 @@ export default function SmartFarmLanding({ onLoginClick, onRegisterClick }) {
     <div className="w-screen h-screen min-h-screen bg-white flex items-center justify-center p-0 overflow-x-hidden">
       <div className="w-full h-full flex flex-col lg:flex-row items-stretch">
         {/* LEFT - Title + CTA */}
-        <div className="flex-1 flex flex-col justify-center items-center lg:items-end px-8 py-12 z-10">
-          <div className="bg-white rounded-2xl shadow-md p-8 w-80 flex flex-col items-center">
-            <h1 className="text-4xl md:text-5xl font-extrabold text-black tracking-tight text-center">SMARTFARM: Cabai</h1>
-            <p className="mt-3 text-md text-[#b83a2f] text-center">Monitor your chilies with us</p>
-            <div className="mt-10 flex flex-col gap-4 w-full">
+        <div className="flex-1 flex flex-col justify-center py-12 z-10">
+          {/* <div className="bg-white rounded-2xl shadow-md p-8 w-80 flex flex-col items-center"> */}
+          <div className="ml-8">
+            <h1 className="text-4xl md:text-5xl font-extrabold text-black tracking-tight">SMARTFARM: Cabai</h1>
+            <p className="mt-3 text-md font-bold text-[#b83a2f]">Monitor your chilies with us</p>
+          </div>
+            <div className="mt-10 flex gap-2 w-full">
               <button
-                className="bg-[#8f1f18] hover:bg-[#7b1a15] text-white font-semibold py-3 px-7 rounded-2xl shadow-md w-full text-lg"
+                className="bg-[#8f1f18] hover:bg-[#7b1a15] text-white font-semibold py-3 px-7 shadow-md w-full text-lg"
                 onClick={onLoginClick}
               >
                 LOGIN
               </button>
               <button
-                className="bg-[#8f1f18] hover:bg-[#7b1a15] text-white font-semibold py-3 px-7 rounded-2xl shadow-md w-full text-lg"
+                className="bg-[#8f1f18] hover:bg-[#7b1a15] text-white font-semibold py-3 px-7 rounded-r-2xl shadow-md w-full text-lg"
                 onClick={onRegisterClick}
               >
                 REGISTER
               </button>
             </div>
-          </div>
+          {/* </div> */}
         </div>
 
         {/* MIDDLE - tall red band with chili image overlapping */}
@@ -35,7 +37,7 @@ export default function SmartFarmLanding({ onLoginClick, onRegisterClick }) {
           <img
             src={chili}
             alt="cabai"
-            className="absolute left-1/2 top-0 -translate-x-1/2 z-10 w-[420px] lg:w-[700px] drop-shadow-2xl object-contain"
+            className="absolute left-1/2 top-0 -translate-x-1/2 z-10 w-[420px] lg:w-[1080px] drop-shadow-2xl object-contain"
             style={{ filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.25))" }}
           />
         </div>

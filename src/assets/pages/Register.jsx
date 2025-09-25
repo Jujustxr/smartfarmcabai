@@ -34,7 +34,7 @@ const Register = ({ onRegister, switchMode }) => {
       {/* Card Register */}
       <form
         onSubmit={handleRegister}
-        className="bg-red-800 text-white shadow-md rounded-2xl p-6 w-80"
+        className="bg-red-800 rounded-lg shadow-lg mt-10 w-full max-w-md p-8 text-center"
       >
         <h2 className="text-xl font-bold mb-4 text-center">REGISTER</h2>
         {error && <p className="text-yellow-300 text-sm mb-3">{error}</p>}
