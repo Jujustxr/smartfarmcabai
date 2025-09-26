@@ -6,7 +6,8 @@ const Card = ({
   value, 
   unit, 
   normalRange,
-  darkMode
+  darkMode,
+  statusColor
 }) => {
   const { isDarkMode: globalDarkMode } = useDarkMode()
   const isDarkMode = darkMode !== undefined ? darkMode : globalDarkMode

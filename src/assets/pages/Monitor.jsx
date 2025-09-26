@@ -48,7 +48,7 @@ const Monitor = ({ isDarkMode }) => {
   const nutrisiEC = (1.8 + Math.cos(Date.now() / 200000) * 0.4 + Math.random() * 0.3).toFixed(1)
 
   return (
-    <div className="p-6 min-h-screen">
+    <div className={`p-6 min-h-screen ${isDarkMode ? "bg-slate-900" : "bg-white"}`}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">

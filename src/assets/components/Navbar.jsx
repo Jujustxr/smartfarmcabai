@@ -11,7 +11,7 @@ import {
   MdLightMode
 } from 'react-icons/md'
 
-const Navbar = ({ currentPage, setCurrentPage, isDarkMode, toggleDarkMode }) => {
+const Navbar = ({ currentPage, setCurrentPage, isDarkMode, toggleDarkMode, onLogout }) => {
   const { isMenuOpen, toggleMenu, closeMenu } = useToggleMenu()
 
   return (
@@ -24,6 +24,14 @@ const Navbar = ({ currentPage, setCurrentPage, isDarkMode, toggleDarkMode }) => 
             <h1 className={`text-xl font-semibold ${isDarkMode ? 'text-gray-100' : 'text-pink-800'}`}>
               Smart Farm Cabai
             </h1>
+
+            {/* Logout Button */}
+            <button
+              onClick={onLogout}
+              className="ml-2 px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
+            >
+              Logout
+            </button>
           </div>
 
           {/* Menu Items */}

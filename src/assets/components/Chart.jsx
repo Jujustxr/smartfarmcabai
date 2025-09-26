@@ -1,74 +1,47 @@
-import React, { useState } from 'react'
-import useDarkMode from '../hooks/useDarkMode'
+import { useState, useMemo } from 'react';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend
+} from 'recharts';
+import { FaChartLine } from 'react-icons/fa';
+import useDarkMode from '../hooks/useDarkMode';
 
-const Chart = ({ title = "Real-time Chart", data = [], timeRanges = ['1H', '6H', '24H'], darkMode }) => {
-  const [activeTimeRange, setActiveTimeRange] = useState(timeRanges[0])
-  const { isDarkMode: globalDarkMode } = useDarkMode()
-  const isDarkMode = darkMode !== undefined ? darkMode : globalDarkMode
+const Chart = ({ title = "Real-time Chart", data = [], timeRanges = ['1H', '3H', '6H'], darkMode }) => {
+  const [selectedRange, setSelectedRange] = useState(timeRanges[0]);
+  const { isDarkMode: globalDarkMode } = useDarkMode();
+  const isDarkMode = darkMode !== undefined ? darkMode : globalDarkMode;
 
-  // Filter data berdasarkan time range yang dipilih
-  const getFilteredData = () => {
-    const now = new Date()
-    let hours = 1
+  // Filter data based on selected time range
+  const filteredData = useMemo(() => {
+    if (!data.length) return [];
     
-    switch(activeTimeRange) {
-      case '1H':
-        hours = 1
-        break
-      case '6H':
-        hours = 6
-        break
-      case '24H':
-        hours = 24
-        break
-      default:
-        hours = 1
-    }
-    
-    const cutoffTime = new Date(now.getTime() - (hours * 60 * 60 * 1000))
-    return data.filter(item => new Date(item.timestamp) >= cutoffTime)
-  }
+    const now = new Date();
+    const hours = parseInt(selectedRange);
+    const cutoff = new Date(now - hours * 60 * 60 * 1000);
 
-  const filteredData = getFilteredData()
+    return data.filter(item => {
+      const itemTime = new Date();
+      const [hours, minutes, seconds] = item.time.split(':');
+      itemTime.setHours(hours, minutes, seconds);
+      return itemTime >= cutoff;
+    });
+  }, [data, selectedRange]);
 
-  // Fungsi untuk mendapatkan koordinat SVG
-  const getSVGCoordinates = (dataPoints, width, height, padding = 40) => {
-    if (!dataPoints.length) return []
-    
-    const maxValue = Math.max(...dataPoints.map(d => Math.max(d.temperature, d.humidity)))
-    const minValue = Math.min(...dataPoints.map(d => Math.min(d.temperature, d.humidity)))
-    const valueRange = maxValue - minValue || 1
-    
-    return dataPoints.map((point, index) => {
-      const x = padding + (index * (width - 2 * padding)) / (dataPoints.length - 1 || 1)
-      const tempY = height - padding - ((point.temperature - minValue) / valueRange) * (height - 2 * padding)
-      const humidityY = height - padding - ((point.humidity - minValue) / valueRange) * (height - 2 * padding)
-      
-      return {
-        x,
-        tempY,
-        humidityY,
-        temperature: point.temperature,
-        humidity: point.humidity,
-        time: point.time
-      }
-    })
-  }
-
-  const chartWidth = 600
-  const chartHeight = 300
-  const coordinates = getSVGCoordinates(filteredData, chartWidth, chartHeight)
-
-  // Fungsi untuk membuat path SVG
-  const createPath = (coords, yKey) => {
-    if (!coords.length) return ""
-    
-    let path = `M ${coords[0].x} ${coords[0][yKey]}`
-    coords.slice(1).forEach(coord => {
-      path += ` L ${coord.x} ${coord[yKey]}`
-    })
-    return path
-  }
+  // Empty state component
+  const EmptyState = () => (
+    <div className="flex flex-col items-center justify-center h-[300px]">
+      <FaChartLine className={`w-12 h-12 mb-4 ${isDarkMode ? 'text-slate-600' : 'text-gray-400'}`} />
+      <p className={`text-lg font-semibold ${isDarkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+        Belum ada data untuk periode ini
+      </p>
+    </div>
+  );
 
   return (
     <div className={`p-6 rounded-lg shadow-md ${
@@ -82,9 +55,9 @@ const Chart = ({ title = "Real-time Chart", data = [], timeRanges = ['1H', '6H',
           {timeRanges.map((range) => (
             <button
               key={range}
-              onClick={() => setActiveTimeRange(range)}
+              onClick={() => setSelectedRange(range)}
               className={`px-3 py-1 text-sm rounded-full transition-colors duration-200 ${
-                activeTimeRange === range
+                selectedRange === range
                   ? (isDarkMode ? 'bg-emerald-900/30 text-emerald-400' : 'bg-green-100 text-green-700')
                   : (isDarkMode ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200')
               }`}
@@ -98,104 +71,46 @@ const Chart = ({ title = "Real-time Chart", data = [], timeRanges = ['1H', '6H',
       <div className="relative">
         {filteredData.length > 0 ? (
           <div className="w-full">
-            {/* Legend */}
-            <div className="flex items-center space-x-6 mb-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                <span className={`text-sm ${
-                  isDarkMode ? 'text-slate-400' : 'text-gray-600'
-                }`}>Suhu (°C)</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className={`text-sm ${
-                  isDarkMode ? 'text-slate-400' : 'text-gray-600'
-                }`}>Kelembaban (%)</span>
-              </div>
-            </div>
-
-            {/* Chart SVG */}
-            <div className="overflow-x-auto">
-              <svg 
-                width={chartWidth} 
-                height={chartHeight} 
-                className={`border rounded-lg ${
-                  isDarkMode 
-                    ? 'border-slate-600 bg-slate-700' 
-                    : 'border-gray-200 bg-gray-50'
-                }`}
-              >
-                {/* Grid lines */}
-                <defs>
-                  <pattern id="grid" width="50" height="30" patternUnits="userSpaceOnUse">
-                    <path d="M 50 0 L 0 0 0 30" fill="none" stroke={isDarkMode ? '#475569' : '#e5e7eb'} strokeWidth="1"/>
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#grid)" />
-
-                {/* Temperature line */}
-                {coordinates.length > 1 && (
-                  <path
-                    d={createPath(coordinates, 'tempY')}
-                    stroke="#f97316"
-                    strokeWidth="2"
-                    fill="none"
-                    className="drop-shadow-sm"
+            <div className="h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={filteredData}>
+                  <CartesianGrid 
+                    strokeDasharray="3 3" 
+                    stroke={isDarkMode ? '#334155' : '#E5E7EB'}
                   />
-                )}
-
-                {/* Humidity line */}
-                {coordinates.length > 1 && (
-                  <path
-                    d={createPath(coordinates, 'humidityY')}
-                    stroke="#3b82f6"
-                    strokeWidth="2"
-                    fill="none"
-                    className="drop-shadow-sm"
+                  <XAxis 
+                    dataKey="time" 
+                    stroke={isDarkMode ? '#CBD5E1' : '#1F2937'}
                   />
-                )}
-
-                {/* Data points */}
-                {coordinates.map((coord, index) => (
-                  <g key={index}>
-                    {/* Temperature point */}
-                    <circle
-                      cx={coord.x}
-                      cy={coord.tempY}
-                      r="4"
-                      fill="#f97316"
-                      className="hover:r-6 transition-all duration-200"
-                    >
-                      <title>{`Suhu: ${coord.temperature}°C - ${coord.time}`}</title>
-                    </circle>
-                    
-                    {/* Humidity point */}
-                    <circle
-                      cx={coord.x}
-                      cy={coord.humidityY}
-                      r="4"
-                      fill="#3b82f6"
-                      className="hover:r-6 transition-all duration-200"
-                    >
-                      <title>{`Kelembaban: ${coord.humidity}% - ${coord.time}`}</title>
-                    </circle>
-                  </g>
-                ))}
-
-                {/* Y-axis labels */}
-                {[0, 25, 50, 75, 100].map((value, index) => (
-                  <g key={value}>
-                    <text
-                      x="10"
-                      y={chartHeight - 40 - (index * (chartHeight - 80) / 4)}
-                      fontSize="10"
-                      fill={isDarkMode ? '#94a3b8' : '#6b7280'}
-                    >
-                      {value}
-                    </text>
-                  </g>
-                ))}
-              </svg>
+                  <YAxis 
+                    stroke={isDarkMode ? '#CBD5E1' : '#1F2937'}
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: isDarkMode ? '#1E293B' : '#FFFFFF',
+                      borderColor: isDarkMode ? '#334155' : '#E5E7EB',
+                      color: isDarkMode ? '#CBD5E1' : '#1F2937'
+                    }}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="temperature"
+                    name="Suhu (°C)"
+                    stroke="#EF4444"
+                    dot={true}
+                    activeDot={{ r: 8 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="humidity"
+                    name="Kelembaban (%)"
+                    stroke="#3B82F6"
+                    dot={true}
+                    activeDot={{ r: 8 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
 
             {/* Current Values */}
@@ -227,21 +142,7 @@ const Chart = ({ title = "Real-time Chart", data = [], timeRanges = ['1H', '6H',
             </div>
           </div>
         ) : (
-          <div className={`h-80 rounded-lg flex items-center justify-center ${
-            isDarkMode ? 'bg-slate-700' : 'bg-gray-100'
-          }`}>
-            <div className="text-center">
-              <div className={`mb-2 ${
-                isDarkMode ? 'text-slate-400' : 'text-gray-500'
-              }`}>📊</div>
-              <p className={`${
-                isDarkMode ? 'text-slate-400' : 'text-gray-500'
-              }`}>Tidak ada data untuk periode {activeTimeRange}</p>
-              <p className={`text-sm mt-1 ${
-                isDarkMode ? 'text-slate-500' : 'text-gray-400'
-              }`}>Silakan pilih rentang waktu lain</p>
-            </div>
-          </div>
+          <EmptyState />
         )}
       </div>
     </div>

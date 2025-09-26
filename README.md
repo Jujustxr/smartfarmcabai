@@ -1,74 +1,82 @@
-# 🌶️ Smart Farm Cabai
 
-> Sistem monitoring dan kontrol otomatis untuk budidaya cabai berbasis IoT dengan React + Vite
 
-[![React](https://img.shields.io/badge/React-19.1.1-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
-[![Vite](https://img.shields.io/badge/Vite-7.1.7-646CFF?style=flat-square&logo=vite)](https://vitejs.dev/)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind-4.1.13-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+# 🌶️ Smart Farm Chili
+
+> Automated monitoring and control system for chili cultivation based on IoT with React + Vite
+
+[![React](https://img.shields.io/badge/React-19.1.1-61DAFB?style=flat-square\&logo=react)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-7.1.7-646CFF?style=flat-square\&logo=vite)](https://vitejs.dev/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind-4.1.13-38B2AC?style=flat-square\&logo=tailwind-css)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-## 📋 Deskripsi
+## 📋 Description
 
-Smart Farm Cabai adalah aplikasi web modern untuk monitoring dan kontrol sistem pertanian pintar khusus budidaya cabai. Aplikasi ini menyediakan dashboard real-time untuk memantau kondisi lingkungan, mengontrol aktuator, dan melihat riwayat data sensor.
+Smart Farm Chili is a modern web application for monitoring and controlling smart farming systems specifically for chili cultivation. It provides a real-time dashboard to monitor environmental conditions, control actuators, and view sensor data history.
 
-## ✨ Fitur Utama
+## ✨ Key Features
 
-- 🏠 **Dashboard** - Overview kondisi farm secara real-time
-- 📊 **Monitor** - Monitoring sensor lingkungan (suhu, kelembaban, pH, dsb)
-- ⚙️ **Kontrol Aktuator** - Kontrol perangkat otomatis (pompa, kipas, lampu)
-- 📈 **Riwayat** - Analisis data historis dan tren
-- 🌙 **Dark Mode** - Mode gelap untuk kenyamanan pengguna
-- 📱 **Responsive Design** - Tampilan optimal di semua perangkat
+* 🏠 **Dashboard** - Real-time overview of farm conditions
+* 📊 **Monitor** - Monitor environmental sensors (temperature, humidity, pH, etc.)
+* ⚙️ **Actuator Control** - Control automation devices (pump, fan, light)
+* 📈 **History** - Analyze historical data and trends
+* 🌙 **Dark Mode** - Dark theme for user comfort
+* 📱 **Responsive Design** - Optimized display on all devices
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** React 19.1.1
-- **Build Tool:** Vite 7.1.7
-- **Styling:** TailwindCSS 4.1.13
-- **Icons:** React Icons 5.5.0
-- **Linting:** ESLint 9.36.0
+* **Frontend:** React 19.1.1
+* **Build Tool:** Vite 7.1.7
+* **Styling:** TailwindCSS 4.1.13
+* **Icons:** React Icons 5.5.0
+* **Linting:** ESLint 9.36.0
 
-## 🚀 Instalasi & Setup
+## 🚀 Installation & Setup
 
-### Prasyarat
-- Node.js (versi 18 atau lebih baru)
-- npm atau yarn
-- Git
+### Prerequisites
 
-### Langkah Instalasi
+* Node.js (version 18 or later)
+* npm or yarn
+* Git
 
-1. **Clone repository**
+### Installation Steps
+
+1. **Clone the repository**
+
    ```bash
    git clone https://github.com/Jujustxr/smartfarmcabai.git
    ```
 
-2. **Masuk ke direktori project**
+2. **Navigate to project directory**
+
    ```bash
    cd smartfarmcabai
    ```
 
 3. **Install dependencies**
+
    ```bash
    npm install
+   npm install recharts
    ```
 
-4. **Jalankan development server**
+4. **Run development server**
+
    ```bash
    npm run dev
    ```
 
-5. **Buka browser** dan akses `http://localhost:5173`
+5. **Open your browser** and go to `http://localhost:5173`
 
 ## 📜 Available Scripts
 
-| Script | Deskripsi |
-|--------|-----------|
-| `npm run dev` | Menjalankan development server |
-| `npm run build` | Build aplikasi untuk production |
-| `npm run preview` | Preview build production |
-| `npm run lint` | Menjalankan ESLint untuk code quality |
+| Script            | Description                  |
+| ----------------- | ---------------------------- |
+| `npm run dev`     | Run development server       |
+| `npm run build`   | Build the app for production |
+| `npm run preview` | Preview the production build |
+| `npm run lint`    | Run ESLint for code quality  |
 
-## 📁 Struktur Project
+## 📁 Project Structure
 
 ```
 SMARTFARM/
@@ -112,29 +120,29 @@ SMARTFARM/
 
 ## 🎨 Preview
 
-> *Screenshot dan demo akan ditambahkan setelah development selesai*
+> *Screenshots and demo will be added after development is complete*
 
 ## 🤝 Contributing
 
-1. Fork repository ini
-2. Buat branch fitur baru (`git checkout -b feature/AmazingFeature`)
-3. Commit perubahan (`git commit -m 'Add some AmazingFeature'`)
-4. Push ke branch (`git push origin feature/AmazingFeature`)
-5. Buat Pull Request
+1. Fork this repository
+2. Create a new feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## 📝 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
-## 👥 Tim Pengembang
+## 👥 Development Team
 
-- **Jujustxr** - *Initial work* - [GitHub](https://github.com/Jujustxr)
+* **Jujustxr** - *Initial work* - [GitHub](https://github.com/Jujustxr)
 
-## 📞 Kontak
+## 📞 Contact
 
-Jika ada pertanyaan atau saran, silakan buat [issue](https://github.com/Jujustxr/smartfarmcabai/issues) di repository ini.
+If you have any questions or suggestions, please open an [issue](https://github.com/Jujustxr/smartfarmcabai/issues) in this repository.
 
 ---
 
-⭐ **Jangan lupa berikan star jika project ini bermanfaat!** ⭐
+⭐ **Don’t forget to give a star if you find this project useful!** ⭐
 
