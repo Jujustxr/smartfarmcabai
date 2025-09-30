@@ -17,7 +17,6 @@ const Chart = ({ title = "Real-time Chart", data = [], timeRanges = ['1H', '3H',
   const { isDarkMode: globalDarkMode } = useDarkMode();
   const isDarkMode = darkMode !== undefined ? darkMode : globalDarkMode;
 
-  // Filter data based on selected time range
   const filteredData = useMemo(() => {
     if (!data.length) return [];
     
@@ -33,7 +32,6 @@ const Chart = ({ title = "Real-time Chart", data = [], timeRanges = ['1H', '3H',
     });
   }, [data, selectedRange]);
 
-  // Empty state component
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center h-[300px]">
       <FaChartLine className={`w-12 h-12 mb-4 ${isDarkMode ? 'text-slate-600' : 'text-gray-400'}`} />
@@ -113,7 +111,6 @@ const Chart = ({ title = "Real-time Chart", data = [], timeRanges = ['1H', '3H',
               </ResponsiveContainer>
             </div>
 
-            {/* Current Values */}
             <div className="mt-4 grid grid-cols-2 gap-4">
               <div className={`text-center p-3 rounded-lg ${
                 isDarkMode ? 'bg-orange-900/30' : 'bg-orange-50'

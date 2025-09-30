@@ -18,14 +18,14 @@ const Navbar = ({ currentPage, setCurrentPage, isDarkMode, toggleDarkMode, onLog
     <nav className={`shadow-lg border-b transition-colors duration-300 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-pink-100 border-pink-300'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+          {/* =========================BAGIAN LOGO========================= */}
           <div className="flex items-center space-x-3">
             <div className="text-2xl">🌶️</div>
             <h1 className={`text-xl font-semibold ${isDarkMode ? 'text-gray-100' : 'text-pink-800'}`}>
               Smart Farm Cabai
             </h1>
 
-            {/* Logout Button */}
+          {/* =========================BAGIAN LOGOUT BUTTON========================= */}
             <button
               onClick={onLogout}
               className="ml-2 px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
@@ -34,9 +34,8 @@ const Navbar = ({ currentPage, setCurrentPage, isDarkMode, toggleDarkMode, onLog
             </button>
           </div>
 
-          {/* Menu Items */}
           <div className="hidden md:flex space-x-1">
-            {/* Dashboard */}
+          {/* =========================BAGIAN MENU DASHBOARD========================= */}
             <button
               onClick={() => setCurrentPage('dashboard')}
               className={`
@@ -52,13 +51,12 @@ const Navbar = ({ currentPage, setCurrentPage, isDarkMode, toggleDarkMode, onLog
               <span><MdDashboard className="w-5 h-5" /></span>
               <span>Dashboard</span>
               
-              {/* Active indicator */}
               {currentPage === 'dashboard' && (
                 <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-green-600 rounded-full animate-pulse"></div>
               )}
             </button>
 
-            {/* Monitor */}
+          {/* =========================BAGIAN MENU MONITOR========================= */}
             <button
               onClick={() => setCurrentPage('monitor')}
               className={`
@@ -74,13 +72,12 @@ const Navbar = ({ currentPage, setCurrentPage, isDarkMode, toggleDarkMode, onLog
               <span><MdMonitor className="w-5 h-5" /></span>
               <span>Monitor</span>
               
-              {/* Active indicator */}
               {currentPage === 'monitor' && (
                 <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-green-600 rounded-full animate-pulse"></div>
               )}
             </button>
 
-            {/* Kontrol Akuator */}
+          {/* =========================BAGIAN MENU KONTROL========================= */}
             <button
               onClick={() => setCurrentPage('kontrol')}
               className={`
@@ -96,13 +93,12 @@ const Navbar = ({ currentPage, setCurrentPage, isDarkMode, toggleDarkMode, onLog
               <span><MdSettings className="w-5 h-5" /></span>
               <span>Kontrol Akuator</span>
               
-              {/* Active indicator */}
               {currentPage === 'kontrol' && (
                 <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-green-600 rounded-full animate-pulse"></div>
               )}
             </button>
 
-            {/* Riwayat */}
+          {/* =========================BAGIAN MENU RIWAYAT========================= */}
             <button
               onClick={() => setCurrentPage('riwayat')}
               className={`
@@ -117,17 +113,15 @@ const Navbar = ({ currentPage, setCurrentPage, isDarkMode, toggleDarkMode, onLog
             >
               <span><MdHistory className="w-5 h-5" /></span>
               <span>Riwayat</span>
-              
-              {/* Active indicator */}
+          
               {currentPage === 'riwayat' && (
                 <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-green-600 rounded-full animate-pulse"></div>
               )}
             </button>
           </div>
 
-          {/* Right side buttons */}
           <div className="flex items-center space-x-2">
-            {/* Dark mode toggle */}
+          {/* =========================BAGIAN TOGGLENYA DARK MODE========================= */}
             <button
               onClick={toggleDarkMode}
               className={`p-2 rounded-lg transition-all duration-200 ${isDarkMode ? 'text-gray-300 hover:text-green-400 hover:bg-gray-700' : 'text-pink-600 hover:text-green-600 hover:bg-pink-200'}`}
@@ -140,7 +134,7 @@ const Navbar = ({ currentPage, setCurrentPage, isDarkMode, toggleDarkMode, onLog
               )}
             </button>
 
-            {/* Mobile menu button */}
+          {/* =========================BAGIAN MENU MOBILE========================= */}
             <div className="md:hidden">
               <button 
                 onClick={toggleMenu}
@@ -156,11 +150,10 @@ const Navbar = ({ currentPage, setCurrentPage, isDarkMode, toggleDarkMode, onLog
           </div>
         </div>
 
-        {/* Mobile menu */}
         {isMenuOpen && (
           <div className={`md:hidden border-t ${isDarkMode ? 'border-gray-600' : 'border-pink-300'}`}>
             <div className="py-2 space-y-1">
-              {/* Dashboard Mobile */}
+          {/* =========================BAGIAN MENU DASHBOARD MOBILE========================= */}
               <button
                 onClick={() => {
                   setCurrentPage('dashboard')
@@ -180,7 +173,7 @@ const Navbar = ({ currentPage, setCurrentPage, isDarkMode, toggleDarkMode, onLog
                 <span>Dashboard</span>
               </button>
 
-              {/* Monitor Mobile */}
+          {/* =========================BAGIAN MENU MONITOR MOBILE========================= */}
               <button
                 onClick={() => {
                   setCurrentPage('monitor')
@@ -200,7 +193,7 @@ const Navbar = ({ currentPage, setCurrentPage, isDarkMode, toggleDarkMode, onLog
                 <span>Monitor</span>
               </button>
 
-              {/* Kontrol Akuator Mobile */}
+          {/* =========================BAGIAN MENU KONTROL MOBILE========================= */}
               <button
                 onClick={() => {
                   setCurrentPage('kontrol')
@@ -220,7 +213,7 @@ const Navbar = ({ currentPage, setCurrentPage, isDarkMode, toggleDarkMode, onLog
                 <span>Kontrol Akuator</span>
               </button>
 
-              {/* Riwayat Mobile */}
+          {/* =========================BAGIAN MENU RIWAYAT MOBILE========================= */}
               <button
                 onClick={() => {
                   setCurrentPage('riwayat')

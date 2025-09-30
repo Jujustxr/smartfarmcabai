@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { auth } from "./lib/firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { supabase } from "./lib/supabaseClient";
 
 import Navbar from "./assets/components/Navbar";
 import PageTransition from "./assets/components/PageTransition";
@@ -16,20 +15,31 @@ import useDarkMode from "./assets/hooks/useDarkMode";
 import Login from "./assets/pages/Login.jsx";
 import Register from "./assets/pages/Register.jsx";
 
-
 const App = () => {
   const [currentPage, setCurrentPage] = useState("dashboard");
-  // 🔑 auth state
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null); // 🔑 auth state
   const [mode, setMode] = useState("login");
   const [showLanding, setShowLanding] = useState(true);
   const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-    });
-    return () => unsub();
+    // cek session pertama kali
+    const getUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      setUser(data?.session?.user || null);
+    };
+    getUser();
+
+    // listen perubahan auth
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   const renderPage = () => {
@@ -47,7 +57,6 @@ const App = () => {
     }
   };
 
-
   // 🔐 kalau belum login
   if (!user) {
     if (showLanding) {
@@ -60,12 +69,16 @@ const App = () => {
     }
     return mode === "login" ? (
       <Login
-        onLogin={() => setUser(auth.currentUser)}
+        onLogin={() => {
+          supabase.auth.getUser().then(({ data }) => setUser(data.user));
+        }}
         switchMode={() => setMode("register")}
       />
     ) : (
       <Register
-        onRegister={() => setUser(auth.currentUser)}
+        onRegister={() => {
+          supabase.auth.getUser().then(({ data }) => setUser(data.user));
+        }}
         switchMode={() => setMode("login")}
       />
     );
@@ -79,7 +92,7 @@ const App = () => {
         setCurrentPage={setCurrentPage}
         isDarkMode={isDarkMode}
         toggleDarkMode={toggleDarkMode}
-        onLogout={() => signOut(auth)}
+        onLogout={() => supabase.auth.signOut()}
       />
       <PageTransition key={currentPage}>{renderPage()}</PageTransition>
     </div>

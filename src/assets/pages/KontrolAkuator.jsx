@@ -26,9 +26,8 @@ const KontrolAkuator = ({ isDarkMode }) => {
           }`}>Kendali manual sistem otomatisasi Smart Farm</p>
         </div>
 
-        {/* Aktuator Controls */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
-          {/* Pompa Air */}
+          {/* =========================BAGIAN KONTROL AIR========================= */}
           <AktuatorCard
             name="Pompa Air"
             description="Mengatur sistem irigasi tanaman"
@@ -39,7 +38,7 @@ const KontrolAkuator = ({ isDarkMode }) => {
             darkMode={isDarkMode}
           />
 
-          {/* Sprinkler */}
+          {/* =========================BAGIAN SPRINKLERR========================= */}
           <AktuatorCard
             name="Sprinkler"
             description="Sistem penyemprotan otomatis"
@@ -51,7 +50,7 @@ const KontrolAkuator = ({ isDarkMode }) => {
           />
         </div>
 
-        {/* Schedule Controls */}
+          {/* =========================BAGIAN SCHEDULLING========================= */}
         <div className={`p-6 rounded-lg shadow-md mb-6 ${
           isDarkMode ? 'bg-slate-800' : 'bg-white'
         }`}>
@@ -137,7 +136,7 @@ const KontrolAkuator = ({ isDarkMode }) => {
           </div>
         </div>
 
-        {/* Manual Override */}
+          {/* =========================BAGIAN OVERRIDE MANUAL========================= */}
         <div className={`p-6 rounded-lg shadow-md ${
           isDarkMode ? 'bg-slate-800' : 'bg-white'
         }`}>

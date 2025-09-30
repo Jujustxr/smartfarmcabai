@@ -5,9 +5,9 @@ export default function SmartFarmLanding({ onLoginClick, onRegisterClick }) {
   return (
     <div className="w-screen h-screen min-h-screen bg-white flex items-center justify-center p-0 overflow-x-hidden">
       <div className="w-full h-full flex flex-col lg:flex-row items-stretch">
-        {/* LEFT - Title + CTA */}
+
+          {/* =========================BAGIAN TITLE & CTA========================= */}
         <div className="flex-1 flex flex-col justify-center py-12 z-10">
-          {/* <div className="bg-white rounded-2xl shadow-md p-8 w-80 flex flex-col items-center"> */}
           <div className="ml-8">
             <h1 className="text-4xl md:text-5xl font-extrabold text-black tracking-tight">SMARTFARM: Cabai</h1>
             <p className="mt-3 text-md font-bold text-[#b83a2f]">Monitor your chilies with us</p>
@@ -29,11 +29,9 @@ export default function SmartFarmLanding({ onLoginClick, onRegisterClick }) {
           {/* </div> */}
         </div>
 
-        {/* MIDDLE - tall red band with chili image overlapping */}
+          {/* =========================BAGIAN GAMBAR & STRIP MERAH========================= */}
         <div className="relative flex-1 flex items-center justify-center min-h-[400px]">
-          {/* colored vertical band */}
           <div className="absolute left-1/2 top-0 -translate-x-1/2 h-full w-32 bg-[#8f1f18] rounded-md shadow-inner z-0"></div>
-          {/* chili image - placed absolute so it overlaps the band and casts shadow */}
           <img
             src={chili}
             alt="cabai"
@@ -42,7 +40,7 @@ export default function SmartFarmLanding({ onLoginClick, onRegisterClick }) {
           />
         </div>
 
-        {/* RIGHT - About Us box */}
+        {/* =========================BAGIAN ABOUT US========================= */}
         <div className="flex-1 flex flex-col justify-between">
           <div className="bg-white rounded-2xl py-24 flex flex-col">
             <div className="bg-[#8f1f18] rounded-l-2xl shadow-md py-3 text-white text-2xl font-bold mb-2 w-full text-center">

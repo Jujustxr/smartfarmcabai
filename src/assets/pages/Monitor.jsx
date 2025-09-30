@@ -11,18 +11,15 @@ import {
 } from 'react-icons/fa'
 
 const Monitor = ({ isDarkMode }) => {
-  // Data sementara untuk chart (simulasi data real-time)
   const generateChartData = () => {
     const data = []
     const now = new Date()
     
-    // Generate data untuk 24 jam terakhir (setiap 30 menit)
+    // INI DI GENERATE TIAP 30 MENIT
     for (let i = 48; i >= 0; i--) {
       const timestamp = new Date(now.getTime() - (i * 30 * 60 * 1000))
       const hours = timestamp.getHours()
       const minutes = timestamp.getMinutes()
-      
-      // Simulasi pola suhu dan kelembaban yang realistis
       const baseTemp = 26 + Math.sin((hours - 6) * Math.PI / 12) * 4 + Math.random() * 2
       const baseHumidity = 65 + Math.cos((hours - 12) * Math.PI / 12) * 10 + Math.random() * 5
       
@@ -38,8 +35,6 @@ const Monitor = ({ isDarkMode }) => {
   }
 
   const chartData = generateChartData()
-  
-  // Simulasi nilai sensor real-time
   const suhuSensor = (26 + Math.sin(Date.now() / 100000) * 3 + Math.random() * 1).toFixed(1)
   const kelembabanUdara = Math.floor(60 + Math.cos(Date.now() / 120000) * 15 + Math.random() * 5)
   const phTanah = (6.5 + Math.sin(Date.now() / 150000) * 0.3 + Math.random() * 0.2).toFixed(1)
@@ -50,7 +45,6 @@ const Monitor = ({ isDarkMode }) => {
   return (
     <div className={`p-6 min-h-screen ${isDarkMode ? "bg-slate-900" : "bg-white"}`}>
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="mb-8">
           <h1 className={`text-3xl font-bold mb-2 ${
             isDarkMode ? 'text-slate-100' : 'text-gray-800'
@@ -60,9 +54,8 @@ const Monitor = ({ isDarkMode }) => {
           }`}>Real-time monitoring parameter lingkungan</p>
         </div>
 
-        {/* Sensor Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {/* Sensor Suhu */}
+          {/* =========================BAGIAN SENSOR SUHU========================= */}
           <SensorCard
             title="Sensor Suhu"
             icon={<FaThermometerHalf className="w-6 h-6" />}
@@ -73,7 +66,7 @@ const Monitor = ({ isDarkMode }) => {
             darkMode={isDarkMode}
           />
 
-          {/* Sensor Kelembaban Udara */}
+          {/* =========================BAGIAN SENSOR KELEMBAPAN UDARA========================= */}
           <SensorCard
             title="Kelembaban Udara"
             icon={<FaTint className="w-6 h-6" />}
@@ -84,7 +77,7 @@ const Monitor = ({ isDarkMode }) => {
             darkMode={isDarkMode}
           />
 
-          {/* Sensor pH */}
+          {/* =========================BAGIAN SENSOR pH========================= */}
           <SensorCard
             title="pH Tanah"
             icon={<FaFlask className="w-6 h-6" />}
@@ -95,7 +88,7 @@ const Monitor = ({ isDarkMode }) => {
             darkMode={isDarkMode}
           />
 
-          {/* Kelembaban Tanah */}
+          {/* =========================BAGIAN SENSOR KELEMBAPAN TANAH========================= */}
           <SensorCard
             title="Kelembaban Tanah"
             icon={<FaSeedling className="w-6 h-6" />}
@@ -106,7 +99,7 @@ const Monitor = ({ isDarkMode }) => {
             darkMode={isDarkMode}
           />
 
-          {/* Intensitas Cahaya */}
+          {/* =========================BAGIAN SENSOR CAHAYA========================= */}
           <SensorCard
             title="Intensitas Cahaya"
             icon={<FaSun className="w-6 h-6" />}
@@ -117,7 +110,7 @@ const Monitor = ({ isDarkMode }) => {
             darkMode={isDarkMode}
           />
 
-          {/* Nutrisi (EC) */}
+          {/* =========================BAGIAN SENSOR NUTRISI========================= */}
           <SensorCard
             title="Nutrisi (EC)"
             icon={<FaLeaf className="w-6 h-6" />}
@@ -129,7 +122,6 @@ const Monitor = ({ isDarkMode }) => {
           />
         </div>
 
-        {/* Real-time Chart */}
         <div className="mb-6">
           <Chart 
             title="Grafik Suhu & Kelembaban Real-time"
@@ -139,7 +131,7 @@ const Monitor = ({ isDarkMode }) => {
           />
         </div>
 
-        {/* Alert System */}
+          {/* =========================BAGIAN ALLERT========================= */}
         <div className={`p-6 rounded-lg shadow-md ${
           isDarkMode ? 'bg-slate-800' : 'bg-white'
         }`}>
@@ -147,7 +139,7 @@ const Monitor = ({ isDarkMode }) => {
             isDarkMode ? 'text-slate-100' : 'text-gray-800'
           }`}>Sistem Peringatan</h3>
           <div className="space-y-3">
-            {/* Warning untuk kelembaban tanah rendah */}
+            {/* INI BUAT KALO KELEMBAPAN TANAH RENDAH */}
             {kelembabanTanah < 50 && (
               <div className="flex items-center space-x-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -158,7 +150,7 @@ const Monitor = ({ isDarkMode }) => {
               </div>
             )}
 
-            {/* Warning untuk suhu tinggi */}
+            {/* INI BUAT KALO SUHU TINGGI */}
             {parseFloat(suhuSensor) > 32 && (
               <div className="flex items-center space-x-3 p-3 bg-red-50 border border-red-200 rounded-lg">
                 <div className="w-3 h-3 bg-red-500 rounded-full"></div>
@@ -169,7 +161,7 @@ const Monitor = ({ isDarkMode }) => {
               </div>
             )}
 
-            {/* Warning untuk pH tidak normal */}
+            {/* INI BUAT KALO pH ABNORMAL */}  
             {(parseFloat(phTanah) < 6.0 || parseFloat(phTanah) > 7.0) && (
               <div className="flex items-center space-x-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
                 <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
@@ -180,7 +172,7 @@ const Monitor = ({ isDarkMode }) => {
               </div>
             )}
 
-            {/* Status normal jika semua parameter aman */}
+            {/* INI BUAT KALO SEMUA NORMAL */}
             {kelembabanTanah >= 50 && parseFloat(suhuSensor) <= 32 && parseFloat(phTanah) >= 6.0 && parseFloat(phTanah) <= 7.0 && (
               <div className="flex items-center space-x-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>

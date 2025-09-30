@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../lib/firebase";
+import { supabase } from "../../lib/supabaseClient";
 
 const Register = ({ onRegister, switchMode }) => {
   const [email, setEmail] = useState("");
@@ -10,18 +9,27 @@ const Register = ({ onRegister, switchMode }) => {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      onRegister(); // update user di App.jsx
-    } catch (err) {
-      if (err.code === "auth/email-already-in-use") {
-        setError("Email sudah terdaftar!");
-      } else if (err.code === "auth/invalid-email") {
-        setError("Format email tidak valid!");
-      } else if (err.code === "auth/weak-password") {
-        setError("Password minimal 6 karakter!");
-      } else {
-        setError("Gagal membuat akun! (" + err.message + ")");
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) {
+        if (error.message.includes("already registered")) {
+          setError("Email sudah terdaftar!");
+        } else if (error.message.includes("invalid email")) {
+          setError("Format email tidak valid!");
+        } else if (error.message.includes("Password should be at least 6 characters")) {
+          setError("Password minimal 6 karakter!");
+        } else {
+          setError("Gagal membuat akun! (" + error.message + ")");
+        }
+        return;
       }
+
+      if (onRegister) onRegister(); 
+    } catch (err) {
+      setError("Terjadi kesalahan. Coba lagi!");
     }
   };
 

@@ -180,7 +180,6 @@ const Riwayat = ({ isDarkMode }) => {
           </div>
         </div>
 
-        {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className={`p-6 rounded-lg shadow-md ${
             isDarkMode ? 'bg-slate-800' : 'bg-white'
@@ -271,7 +270,6 @@ const Riwayat = ({ isDarkMode }) => {
           </div>
         </div>
 
-        {/* Historical Chart */}
         <div className={`p-6 rounded-lg shadow-md mb-6 ${
           isDarkMode ? 'bg-slate-800' : 'bg-white'
         }`}>
@@ -287,7 +285,6 @@ const Riwayat = ({ isDarkMode }) => {
           </div>
         </div>
 
-        {/* Event Log */}
         <div className={`rounded-lg shadow-md ${
           isDarkMode ? 'bg-slate-800' : 'bg-white'
         }`}>
@@ -336,7 +333,6 @@ const Riwayat = ({ isDarkMode }) => {
             ))}
           </div>
           
-          {/* Load More */}
           <div className={`p-6 border-t text-center ${
             isDarkMode ? 'border-slate-700' : 'border-gray-200'
           }`}>

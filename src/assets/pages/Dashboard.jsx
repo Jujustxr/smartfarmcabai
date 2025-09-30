@@ -16,7 +16,7 @@ const Dashboard = ({ isDarkMode }) => {
   const [sensorStatus, setSensorStatus] = useState("offline");
   const [lastUpdateTime, setLastUpdateTime] = useState(null);
 
-  // Format timestamp for chart
+          {/* =========================BAGIAN TIMESTAMP========================= */}
   const formatChartTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString([], { 
       hour: '2-digit', 
@@ -25,12 +25,10 @@ const Dashboard = ({ isDarkMode }) => {
     });
   };
 
-  // Handle new sensor data
   const handleNewSensorData = useCallback((newData) => {
     const timestamp = new Date(newData.created_at);
     setLastUpdateTime(timestamp);
 
-    // Update sensor cards
     setSensorData({
       suhu: newData.temperature,
       kelembaban: newData.humidity,
@@ -38,12 +36,11 @@ const Dashboard = ({ isDarkMode }) => {
       pompa: newData.pump_status || "Auto"
     });
 
-    // Update chart data
     setChartData(prev => [...prev, {
       time: formatChartTime(timestamp),
       temperature: newData.temperature,
       humidity: newData.humidity
-    }].slice(-100)); // Keep last 100 readings
+    }].slice(-100)); 
 
     setSensorStatus('online');
   }, []);
@@ -53,7 +50,6 @@ const Dashboard = ({ isDarkMode }) => {
 
     const initialize = async () => {
       try {
-        // Get latest sensor reading
         const { data: latestData } = await supabase
           .from('sensor_data')
           .select('*')
@@ -65,7 +61,6 @@ const Dashboard = ({ isDarkMode }) => {
           handleNewSensorData(latestData);
         }
 
-        // Get historical data for chart
         const { data: historyData } = await supabase
           .from('sensor_data')
           .select('*')
@@ -80,7 +75,6 @@ const Dashboard = ({ isDarkMode }) => {
           })));
         }
 
-        // Setup real-time subscription
         subscription = supabase
           .channel('sensor_changes')
           .on(
@@ -103,7 +97,7 @@ const Dashboard = ({ isDarkMode }) => {
 
     initialize();
 
-    // Monitor sensor status
+          {/* =========================BAGIAN MONITOR STATUS SENSOR========================= */}
     const statusCheck = setInterval(() => {
       if (lastUpdateTime) {
         const timeSinceLastUpdate = (new Date() - lastUpdateTime) / 1000;
@@ -121,7 +115,6 @@ const Dashboard = ({ isDarkMode }) => {
     };
   }, [handleNewSensorData, lastUpdateTime]);
 
-  // Helper function to render sensor value or offline message
   const renderSensorValue = (value, unit) => {
     if (sensorStatus === 'offline') {
       return 'Offline';
@@ -129,7 +122,6 @@ const Dashboard = ({ isDarkMode }) => {
     return `${value}${unit}`;
   };
 
-  // Helper function to get status color
   const getStatusColor = (value, type) => {
     if (sensorStatus === 'offline') return 'text-red-500';
     
@@ -148,7 +140,6 @@ const Dashboard = ({ isDarkMode }) => {
   return (
     <div className={`p-6 min-h-screen ${isDarkMode ? "bg-slate-900" : "bg-white"}`}> 
       <div className="max-w-7xl mx-auto">
-        {/* Header with enhanced status message */}
         <div className="mb-8">
           <h1 className={`text-3xl font-bold mb-2 ${isDarkMode ? 'text-slate-100' : 'text-gray-800'}`}>Dashboard</h1>
           <p className={`${isDarkMode ? 'text-slate-400' : 'text-gray-600'}`}>Overview sistem monitoring Smart Farm Cabai</p>
@@ -169,7 +160,6 @@ const Dashboard = ({ isDarkMode }) => {
           </div>
         </div>
 
-        {/* Cards with offline state handling */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card 
             title="Sensor Suhu" 
@@ -209,7 +199,6 @@ const Dashboard = ({ isDarkMode }) => {
           />
         </div>
 
-        {/* Charts & Recent Activity with offline state */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {sensorStatus === 'offline' ? (
             <div className={`p-6 rounded-lg shadow-md ${isDarkMode ? 'bg-slate-800 text-slate-200' : 'bg-white text-gray-800'}`}>

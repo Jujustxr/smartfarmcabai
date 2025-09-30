@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../lib/firebase";
+import { supabase } from "../../lib/supabaseClient";
 
 const Login = ({ switchMode, onLogin }) => {
   const [email, setEmail] = useState("");
@@ -10,20 +9,28 @@ const Login = ({ switchMode, onLogin }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        setError("Email atau password salah!");
+        return;
+      }
+
       if (onLogin) onLogin();
     } catch (err) {
-      setError("Email atau password salah!");
+      setError("Terjadi kesalahan. Coba lagi!");
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#a32116] px-4">
-      {/* Welcome Title */}
       <h1 className="text-5xl md:text-6xl font-extrabold text-white">WELCOME</h1>
       <p className="text-white mt-2 text-lg">Monitor your chilies with us</p>
 
-      {/* Card Login */}
+          {/* =========================BAGIAN CARD LOGIN========================= */}
       <form
         onSubmit={handleLogin}
         className="bg-white rounded-lg shadow-lg mt-10 w-full max-w-md p-8 text-center"
