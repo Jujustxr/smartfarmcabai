@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react'
 import bg from '../smc-p1.1.png'
 import chiliField from '../bgsmc2.png'
 import bgCave from "../bg5.png";
+import dashboardImg from '../Dashboardfarm.png'
+import prototypeImg from '../PROTOYPE.jpg'
 
 export default function LandingPage({ onLoginClick, onRegisterClick }) {
   const titleRef = useRef(null)
@@ -19,7 +21,6 @@ export default function LandingPage({ onLoginClick, onRegisterClick }) {
       entries.forEach((entry) => {
         const el = entry.target
 
-        // If this is the features section, animate its title and cards with a stagger
         if (featuresRef.current && el === featuresRef.current) {
           const title = el.querySelector('.features-title')
           const cards = el.querySelectorAll('.feature-card')
@@ -67,22 +68,16 @@ export default function LandingPage({ onLoginClick, onRegisterClick }) {
   }, [])
 
   return (
-    <>
-      <div className="w-full relative bg-white">
-        {/* Hero image shown as an <img> so it won't be cropped; fits the side */}
-        <div className="relative">
-          <img src={bg} alt="hero" className="w-full object-contain" />
-
-          {/* Buttons moved to the white spacer below for consistent placement */}
+    <div className="snap-y snap-mandatory overflow-y-auto h-screen">
+      <section className="snap-start w-full min-h-screen bg-white flex items-center justify-center">
+        <div className="relative w-full h-full">
+          <img src={bg} alt="hero" className="w-full h-full object-cover" />
         </div>
+      </section>
 
-        {/* White spacer under the hero so the first page doesn't get visually cut */}
-        <div className="w-full bg-white py-8 md:py-20" />
-      </div>
-
-        {/* About Section (now after hero) */}
+        {/* About Section*/}
       <section
-        className="w-full min-h-screen bg-cover bg-center flex flex-col items-center justify-center px-6 relative -mt-12 md:-mt-20"
+        className="snap-start w-full min-h-screen bg-cover bg-center flex flex-col items-center justify-center px-6 relative"
         style={{
           backgroundImage: `url(${chiliField})`,
         }}
@@ -122,14 +117,12 @@ export default function LandingPage({ onLoginClick, onRegisterClick }) {
       {/* Key Features */}
       <section
         ref={featuresRef}
-        className="w-full min-h-screen bg-[#A86B3E] flex flex-col items-center px-6 pt-28 md:pt-36 pb-16">
+        className="snap-start w-full min-h-screen bg-[#A86B3E] flex flex-col items-center px-6 pt-28 md:pt-36 pb-16">
           
            {/* Title */}
       <h1 className="features-title text-4xl md:text-5xl font-extrabold text-white mb-16 transform transition duration-700 ease-out opacity-0 translate-y-6">
         KEY FEATURES
       </h1>
-
-      {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl w-full mx-auto transform translate-x-4 md:translate-x-12">
         
         {/* Card 1 */}
@@ -156,7 +149,7 @@ export default function LandingPage({ onLoginClick, onRegisterClick }) {
     </section>
 
      <section
-      className="w-full min-h-screen flex flex-col items-center py-16 px-6"
+      className="snap-start w-full min-h-screen flex flex-col items-center py-16 px-6"
       style={{
         background: "linear-gradient(to bottom, #A86B3E, #34151A)",
       }}
@@ -171,15 +164,26 @@ export default function LandingPage({ onLoginClick, onRegisterClick }) {
 
         {/* Box 1 */}
         <div className="w-full h-135 bg-[#E3BEA8] rounded-3xl relative overflow-hidden">
+          <img
+            src={dashboardImg}
+            alt="dashboard preview"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
         </div>
-                {/* Box 2 */}
+
+        {/* Box 2 */}
         <div className="w-full h-135 bg-[#E3BEA8] rounded-3xl relative overflow-hidden">
+          <img
+            src={prototypeImg}
+            alt="prototype preview"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
         </div>
       </div>
     </section>
 
     <section
-      className="w-full min-h-screen flex flex-col items-center px-6 py-28 md:py-36 relative overflow-hidden"
+      className="snap-start w-full min-h-screen flex flex-col items-center px-6 py-28 md:py-36 relative overflow-hidden"
       style={{ backgroundColor: "#34151A" }}
     >
 
@@ -219,7 +223,7 @@ export default function LandingPage({ onLoginClick, onRegisterClick }) {
     </section>
 
     <section
-      className="w-full h-screen bg-cover bg-center relative"
+      className="snap-start w-full h-screen bg-cover bg-center relative"
       style={{ backgroundImage: `url(${bgCave})` }}
     >
       {/* Dark overlay (optional) */}
@@ -270,6 +274,6 @@ export default function LandingPage({ onLoginClick, onRegisterClick }) {
       </div>
     </section>
 
-    </>
+    </div>
   );
 }
