@@ -1,8 +1,12 @@
 import React from 'react'
 
-const PageTransition = ({ children }) => {
+const PageTransition = ({ children, type = 'fade' }) => {
+  let cls = 'animate-fadeIn'
+  if (type === 'slide') cls = 'animate-slideIn'
+  if (type === 'blink') cls = 'animate-blinkSlow'
+
   return (
-    <div className="animate-fadeIn">
+    <div className={cls}>
       {children}
     </div>
   )

@@ -1,72 +1,275 @@
-import React from "react";
-import chili from "../Chili.png";
+import React, { useEffect, useRef } from 'react'
+import bg from '../smc-p1.1.png'
+import chiliField from '../bgsmc2.png'
+import bgCave from "../bg5.png";
 
-export default function SmartFarmLanding({ onLoginClick, onRegisterClick }) {
+export default function LandingPage({ onLoginClick, onRegisterClick }) {
+  const titleRef = useRef(null)
+  const paraRef = useRef(null)
+  const featuresRef = useRef(null)
+  const previewTitleRef = useRef(null)
+  const previewGridRef = useRef(null)
+  const howTitleRef = useRef(null)
+  const howCardRef = useRef(null)
+  const contactCardRef = useRef(null)
+
+  useEffect(() => {
+    const opts = { threshold: 0.2 }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const el = entry.target
+
+        // If this is the features section, animate its title and cards with a stagger
+        if (featuresRef.current && el === featuresRef.current) {
+          const title = el.querySelector('.features-title')
+          const cards = el.querySelectorAll('.feature-card')
+          if (entry.isIntersecting) {
+            if (title) {
+              title.classList.remove('opacity-0', 'translate-y-6')
+              title.classList.add('opacity-100', 'translate-y-0')
+            }
+            cards.forEach((c) => {
+              c.classList.remove('opacity-0', 'translate-y-6')
+              c.classList.add('opacity-100', 'translate-y-0')
+            })
+          } else {
+            if (title) {
+              title.classList.remove('opacity-100', 'translate-y-0')
+              title.classList.add('opacity-0', 'translate-y-6')
+            }
+            cards.forEach((c) => {
+              c.classList.remove('opacity-100', 'translate-y-0')
+              c.classList.add('opacity-0', 'translate-y-6')
+            })
+          }
+          return
+        }
+        if (entry.isIntersecting) {
+          el.classList.remove('opacity-0', 'translate-y-6')
+          el.classList.add('opacity-100', 'translate-y-0')
+        } else {
+          el.classList.remove('opacity-100', 'translate-y-0')
+          el.classList.add('opacity-0', 'translate-y-6')
+        }
+      })
+    }, opts)
+
+    if (titleRef.current) io.observe(titleRef.current)
+    if (paraRef.current) io.observe(paraRef.current)
+    if (featuresRef.current) io.observe(featuresRef.current)
+    if (previewTitleRef.current) io.observe(previewTitleRef.current)
+    if (previewGridRef.current) io.observe(previewGridRef.current)
+    if (howTitleRef.current) io.observe(howTitleRef.current)
+    if (howCardRef.current) io.observe(howCardRef.current)
+    if (contactCardRef.current) io.observe(contactCardRef.current)
+
+    return () => io.disconnect()
+  }, [])
+
   return (
-    <div className="w-screen h-screen min-h-screen bg-white flex items-center justify-center p-0 overflow-x-hidden">
-      <div className="w-full h-full flex flex-col lg:flex-row items-stretch">
+    <>
+      <div className="w-full relative bg-white">
+        {/* Hero image shown as an <img> so it won't be cropped; fits the side */}
+        <div className="relative">
+          <img src={bg} alt="hero" className="w-full object-contain" />
 
-          {/* =========================BAGIAN TITLE & CTA========================= */}
-        <div className="flex-1 flex flex-col justify-center py-12 z-10">
-          <div className="ml-8">
-            <h1 className="text-4xl md:text-5xl font-extrabold text-black tracking-tight">SMARTFARM: Cabai</h1>
-            <p className="mt-3 text-md font-bold text-[#b83a2f]">Monitor your chilies with us</p>
-          </div>
-            <div className="mt-10 flex gap-2 w-full">
-              <button
-                className="bg-[#8f1f18] hover:bg-[#7b1a15] text-white font-semibold py-3 px-7 shadow-md w-full text-lg"
-                onClick={onLoginClick}
-              >
-                LOGIN
-              </button>
-              <button
-                className="bg-[#8f1f18] hover:bg-[#7b1a15] text-white font-semibold py-3 px-7 rounded-r-2xl shadow-md w-full text-lg"
-                onClick={onRegisterClick}
-              >
-                REGISTER
-              </button>
-            </div>
-          {/* </div> */}
+          {/* Buttons moved to the white spacer below for consistent placement */}
         </div>
 
-          {/* =========================BAGIAN GAMBAR & STRIP MERAH========================= */}
-        <div className="relative flex-1 flex items-center justify-center min-h-[400px]">
-          <div className="absolute left-1/2 top-0 -translate-x-1/2 h-full w-32 bg-[#8f1f18] rounded-md shadow-inner z-0"></div>
-          <img
-            src={chili}
-            alt="cabai"
-            className="absolute left-1/2 top-0 -translate-x-1/2 z-10 drop-shadow-2xl object-contain"
-            style={{ filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.25))" }}
-          />
+        {/* White spacer under the hero so the first page doesn't get visually cut */}
+        <div className="w-full bg-white py-8 md:py-20" />
+      </div>
+
+        {/* About Section (now after hero) */}
+      <section
+        className="w-full min-h-screen bg-cover bg-center flex flex-col items-center justify-center px-6 relative -mt-12 md:-mt-20"
+        style={{
+          backgroundImage: `url(${chiliField})`,
+        }}
+      >
+        {/* Title */}
+        <h1 ref={titleRef} className="-mt-5 md:-mt-50 text-5xl md:text-6xl font-extrabold text-teal-700 drop-shadow-md text-center transform transition duration-700 ease-out opacity-0 translate-y-6">
+          WHAT ABOUT US ?
+        </h1>
+
+        {/* Description */}
+        <p ref={paraRef} className="max-w-3xl text-center mt-2 text-gray-800 font-medium leading-relaxed transform transition duration-700 ease-out opacity-0 translate-y-6">
+          SMARTFARM CABAI is a modern farming project that uses technology and
+          eco-friendly methods to make chili farming smarter and more efficient.
+          We help farmers grow better crops, protect the environment, and build a
+          greener future for agriculture.
+        </p>
+
+        <div className="mt-8 flex justify-center gap-4">
+          <button
+            onClick={onLoginClick}
+            aria-label="Login"
+            className="inline-block text-center bg-transparent text-green-700 hover:bg-green-500 hover:text-white border-2 border-green-500/20 hover:border-transparent font-bold px-6 py-3 rounded-xl shadow-md text-lg transition-colors duration-200"
+          >
+            LOGIN
+          </button>
+
+          <button
+            onClick={onRegisterClick}
+            aria-label="Register"
+            className="inline-block text-center bg-transparent text-green-700 hover:bg-green-500 hover:text-white border-2 border-green-500/20 hover:border-transparent font-bold px-6 py-3 rounded-xl shadow-md text-lg transition-colors duration-200"
+          >
+            REGISTER
+          </button>
+        </div>
+      </section>
+
+      {/* Key Features */}
+      <section
+        ref={featuresRef}
+        className="w-full min-h-screen bg-[#A86B3E] flex flex-col items-center px-6 pt-28 md:pt-36 pb-16">
+          
+           {/* Title */}
+      <h1 className="features-title text-4xl md:text-5xl font-extrabold text-white mb-16 transform transition duration-700 ease-out opacity-0 translate-y-6">
+        KEY FEATURES
+      </h1>
+
+      {/* Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl w-full mx-auto transform translate-x-4 md:translate-x-12">
+        
+        {/* Card 1 */}
+        <div className="feature-card bg-[#6A3F1F] text-white rounded-3xl p-12 md:p-14 text-center text-2xl md:text-3xl font-semibold shadow-xl transform transition duration-700 ease-out opacity-0 translate-y-6 hover:scale-105 hover:-translate-y-1 hover:shadow-2xl">
+          Eco-Friendly Insights
         </div>
 
-        {/* =========================BAGIAN ABOUT US========================= */}
-        <div className="flex-1 flex flex-col justify-between">
-          <div className="bg-white rounded-2xl py-24 flex flex-col">
-            <div className="bg-[#8f1f18] rounded-l-2xl shadow-md py-3 text-white text-2xl font-bold mb-2 w-full text-center">
-              ABOUT US
-            </div>
-            <div className="mt-6 text-left text-sm px-12 leading-6">
-              <p className="font-semibold text-right">SmartFarm: Cabai is a modern farming initiative dedicated to optimizing chili cultivation through technology, innovation, and sustainable practices. We combine traditional agricultural knowledge with smart solutions—such as automated monitoring, data-driven insights, and eco-friendly techniques—to improve productivity, quality, and efficiency in chili farming.</p>
-              <p className="mt-4 font-semibold text-right">Our mission is to empower farmers, support food security, and bring high-quality cabai (chili) to the market while reducing environmental impact. With SmartFarm: Cabai, farming is not just about growing crops, but also about building a smarter, greener, and more resilient future for agriculture.</p>
-            </div>
+        {/* Card 2 */}
+        <div className="feature-card bg-[#6A3F1F] text-white rounded-3xl p-12 md:p-14 text-center text-2xl md:text-3xl font-semibold shadow-xl transform transition duration-700 ease-out opacity-0 translate-y-6 hover:scale-105 hover:-translate-y-1 hover:shadow-2xl">
+          Smart Alerts
+        </div>
+
+                {/* Card 3 */}
+        <div className="feature-card bg-[#6A3F1F] text-white rounded-3xl p-12 md:p-14 text-center text-2xl md:text-3xl font-semibold shadow-xl transform transition duration-700 ease-out opacity-0 translate-y-6 hover:scale-105 hover:-translate-y-1 hover:shadow-2xl">
+          Real-time Monitoring
+        </div>
+
+        {/* Card 4 */}
+        <div className="feature-card bg-[#6A3F1F] text-white rounded-3xl p-12 md:p-14 text-center text-2xl md:text-3xl font-semibold shadow-xl transform transition duration-700 ease-out opacity-0 translate-y-6 hover:scale-105 hover:-translate-y-1 hover:shadow-2xl">
+          Data Dashboard
+        </div>
+        
+      </div>
+    </section>
+
+     <section
+      className="w-full min-h-screen flex flex-col items-center py-16 px-6"
+      style={{
+        background: "linear-gradient(to bottom, #A86B3E, #34151A)",
+      }}
+    >
+      {/* Title */}
+      <h1 ref={previewTitleRef} className="text-3xl md:text-7xl font-extrabold text-white mb-12 tracking-wide transform transition duration-700 ease-out opacity-0 translate-y-6">
+        PREVIEW
+      </h1>
+
+      {/* Preview Boxes */}
+      <div ref={previewGridRef} className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl w-full justify-center transform transition duration-700 ease-out opacity-0 translate-y-6">
+
+        {/* Box 1 */}
+        <div className="w-full h-135 bg-[#E3BEA8] rounded-3xl relative overflow-hidden">
+        </div>
+                {/* Box 2 */}
+        <div className="w-full h-135 bg-[#E3BEA8] rounded-3xl relative overflow-hidden">
+        </div>
+      </div>
+    </section>
+
+    <section
+      className="w-full min-h-screen flex flex-col items-center px-6 py-28 md:py-36 relative overflow-hidden"
+      style={{ backgroundColor: "#34151A" }}
+    >
+
+      {/* Title */}
+      <h1 ref={howTitleRef} className="text-4xl md:text-6xl font-extrabold text-white mb-12 md:mb-16 tracking-wide transform transition duration-700 ease-out opacity-0 translate-y-6">
+        HOW IT WORKS:
+      </h1>
+
+      {/* Main Card */}
+      <div ref={howCardRef} className="bg-[#3a1a15] text-white rounded-3xl p-12 md:p-16 shadow-2xl max-w-3xl w-full relative transform transition duration-700 ease-out opacity-0 translate-y-6">
+        
+        {/* Glow behind the card */}
+        <div className="absolute inset-0 rounded-2xl bg-black opacity-20 blur-2xl -z-10"></div>
+
+        <ul className="space-y-6 text-xl md:text-2xl">
+          <li className="flex items-center gap-3">
+            <span className="text-yellow-300 text-3xl md:text-4xl">📡</span>
+            Install Smart Sensors in your farm
+          </li>
+
+          <li className="flex items-center gap-3">
+            <span className="text-green-300 text-3xl md:text-4xl">🔗</span>
+            Connect to SmartFarm: Cabai
+          </li>
+
+          <li className="flex items-center gap-3">
+            <span className="text-blue-300 text-3xl md:text-4xl">📊</span>
+            Monitor and get insights anywhere
+          </li>
+        </ul>
+      </div>
+
+      {/* Read more */}
+      <p className="text-white mt-6 opacity-80 hover:opacity-100 cursor-pointer">
+        Read more..
+      </p>
+    </section>
+
+    <section
+      className="w-full h-screen bg-cover bg-center relative"
+      style={{ backgroundImage: `url(${bgCave})` }}
+    >
+      {/* Dark overlay (optional) */}
+      <div className="absolute inset-0 bg-black/40" />
+
+      {/* Content (centered vertically, moved slightly toward middle) */}
+      <div className="relative z-10 px-6 py-12 h-full flex items-center justify-center md:justify-start md:items-start md:pt-8 md:pl-24">
+        <div className="w-full max-w-md">
+
+          <h1 className="text-white text-4xl font-extrabold mb-6">CONTACT INFO</h1>
+
+          {/* Contact Box (more transparent) */}
+          <div ref={contactCardRef} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 max-w-md shadow-xl transform transition duration-700 ease-out opacity-0 translate-y-6">
+            <h2 className="text-white text-xl font-semibold mb-4">Send Us a Message</h2>
+
+            <input
+              type="text"
+              placeholder="Your Name"
+              className="w-full p-2 rounded-lg mb-3 bg-white/20 text-white placeholder-gray-300 outline-none"
+            />
+            <input
+              type="email"
+              placeholder="Your Email"
+              className="w-full p-2 rounded-lg mb-3 bg-white/20 text-white placeholder-gray-300 outline-none"
+            />
+            <textarea
+              placeholder="Your Message..."
+              className="w-full p-2 h-28 rounded-lg mb-3 bg-white/20 text-white placeholder-gray-300 outline-none"
+            />
+            <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition">
+              Send Message
+            </button>
           </div>
-          <div className="mt-8 flex items-center justify-center gap-6 m-7">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 12h18" stroke="#111827" strokeWidth="2" strokeLinecap="round" />
-              <path d="M12 3v18" stroke="#111827" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="10" stroke="#2563EB" strokeWidth="1.5" />
-              <path d="M14 8h1.5V5.5H14c-1.72 0-3 1.3-3 3.1V11H9v2h2v6h2v-6h1.6l.4-2H13V9.2c0-.3.2-.6.5-.6z" fill="#2563EB" />
-            </svg>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="5" stroke="#ff7a59" strokeWidth="1.5" />
-              <circle cx="12" cy="12" r="3" stroke="#ff7a59" strokeWidth="1.5" />
-            </svg>
+
+          {/* Social Icons (kept under the form) */}
+          <div className="flex items-center gap-6 mt-6 text-white text-3xl">
+            <a href="#" className="hover:opacity-70 transition">
+              <i className="fa-brands fa-instagram" />
+            </a>
+            <a href="#" className="hover:opacity-70 transition">
+              <i className="fa-brands fa-facebook" />
+            </a>
+            <a href="#" className="hover:opacity-70 transition">
+              <i className="fa-brands fa-tiktok" />
+            </a>
           </div>
         </div>
       </div>
-    </div>
+    </section>
+
+    </>
   );
 }

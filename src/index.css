@@ -19,3 +19,28 @@ body {
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-in-out;
 }
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slideIn {
+  animation: slideInFromRight 0.5s cubic-bezier(.22,.9,.28,1);
+}
+
+@keyframes blinkSlow {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+.animate-blinkSlow {
+  animation: blinkSlow 1.2s ease-in-out 1;
+}

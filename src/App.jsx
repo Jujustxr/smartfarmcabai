@@ -18,11 +18,13 @@ import Login from "./assets/pages/Login.jsx"
 import Register from "./assets/pages/Register.jsx"
 
 const App = () => {
-  const [currentPage, setCurrentPage] = useState("dashboard")
-  const [user, setUser] = useState(null) // 🔑 auth state
-  const [mode, setMode] = useState("login")
-  const [showLanding, setShowLanding] = useState(true)
-  const { isDarkMode, toggleDarkMode } = useDarkMode()
+  const [currentPage, setCurrentPage] = useState("dashboard");
+  const [user, setUser] = useState(null); // 🔑 auth state
+  const [mode, setMode] = useState("login");
+  const [showLanding, setShowLanding] = useState(true);
+  const [authError, setAuthError] = useState("");
+  const [transitionType, setTransitionType] = useState('fade');
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   useEffect(() => {
     // cek session pertama kali
@@ -57,35 +59,71 @@ const App = () => {
     }
   }
 
-  // 🔐 kalau belum login
+  //🔐 kalau belum login
   if (!user) {
     if (showLanding) {
       return (
         <SmartFarmLanding
-          onLoginClick={() => {
-            setShowLanding(false)
-            setMode("login")
-          }}
-          onRegisterClick={() => {
-            setShowLanding(false)
-            setMode("register")
-          }}
+          onLoginClick={() => { setShowLanding(false); setMode("login"); setTransitionType('fade'); }}
+          onRegisterClick={() => { setShowLanding(false); setMode("register"); setTransitionType('blink'); }}
         />
-      )
+      );
     }
     return mode === "login" ? (
       <Login
-        onLogin={() => {
-          supabase.auth.getUser().then(({ data }) => setUser(data.user))
+        onLogin={async (creds) => {
+          // If credentials are provided, try to sign in with Supabase
+          try {
+            if (creds && creds.email && creds.password) {
+              const { data, error } = await supabase.auth.signInWithPassword({
+                email: creds.email,
+                password: creds.password,
+              });
+              if (error) {
+                // network or auth error
+                console.error("Supabase signIn error:", error);
+                // Better message for network issues
+                const msg = error.message || String(error);
+                if (msg.toLowerCase().includes("failed to fetch") || msg.toLowerCase().includes("network")) {
+                  setAuthError("Network error while contacting Supabase. Check your internet and that your Supabase project allows requests from this origin (Auth > Settings > Allowed origins / Site URL).\nOrigin: " + window.location.origin);
+                } else {
+                  setAuthError(msg);
+                }
+                return;
+              }
+              setAuthError("");
+              setUser(data.user || null);
+              // slide animation into dashboard
+              setTransitionType('slide');
+              setCurrentPage("dashboard");
+              return;
+            }
+
+            // Fallback: try to read current session
+            const { data } = await supabase.auth.getUser();
+            setAuthError("");
+            setUser(data?.user || null);
+            setTransitionType('slide');
+            setCurrentPage("dashboard");
+          } catch (err) {
+            console.error("Login error:", err);
+            // If fetch failed due to CORS or network, surface clearer guidance
+            if (err instanceof TypeError && err.message === 'Failed to fetch') {
+              setAuthError("Network error: could not reach Supabase. Make sure VITE_SUPABASE_URL is correct and that your Supabase project's Allowed Origins include " + window.location.origin + ".");
+            } else {
+              setAuthError("Login failed. Please try again.");
+            }
+          }
         }}
-        switchMode={() => setMode("register")}
+        authError={authError}
+        switchMode={() => { setMode("register"); setTransitionType('blink'); }}
       />
     ) : (
       <Register
         onRegister={() => {
           supabase.auth.getUser().then(({ data }) => setUser(data.user))
         }}
-        switchMode={() => setMode("login")}
+        switchMode={() => { setMode("login"); setTransitionType('fade'); }}
       />
     )
   }
@@ -100,7 +138,7 @@ const App = () => {
         toggleDarkMode={toggleDarkMode}
         onLogout={() => supabase.auth.signOut()}
       />
-      <PageTransition key={currentPage}>{renderPage()}</PageTransition>
+      <PageTransition key={currentPage} type={transitionType}>{renderPage()}</PageTransition>
     </div>
   )
 }
