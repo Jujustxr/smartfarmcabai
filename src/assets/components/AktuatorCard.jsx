@@ -10,7 +10,8 @@ const AktuatorCard = ({
   darkMode
 }) => {
   const { isDarkMode: globalDarkMode } = useDarkMode()
-  const isDarkMode = darkMode !== undefined ? darkMode : globalDarkMode
+  const docDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  const isDarkMode = darkMode !== undefined ? darkMode : (globalDarkMode ?? docDark)
 
   const getColorClasses = (color, isActive) => {
     const colors = {

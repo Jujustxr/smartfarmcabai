@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef } from "react"
+import { useEffect, useState, useCallback, useRef, useMemo } from "react"
 import Card from "../components/Card"
 import Chart from "../components/Chart"
 import { FaThermometerHalf, FaTint } from "react-icons/fa"
@@ -8,28 +8,20 @@ import { FaGear } from "react-icons/fa6"
 import { supabase } from "../../lib/supabaseClient"
 
 const Dashboard = ({ isDarkMode }) => {
-  const [sensorData, setSensorData] = useState({
-    suhu: 0,
-    kelembaban: 0,
-    ph: 0,
-    water_percent: 0,
-    water_adc: 0,
-    pompa: "Mati",
-  })
-  const [chartData, setChartData] = useState([])
-  const [recentActivity, setRecentActivity] = useState([])
-  const [overviewData, setOverviewData] = useState([])
-  const overviewMapRef = useRef({}) // stores per-quarter aggregation (sum/count)
-  const lastOverviewUpdateRef = useRef(0)
-  const [sensorStatus, setSensorStatus] = useState("offline")
-  const [lastUpdateTime, setLastUpdateTime] = useState(null)
-  const [connectionStability, setConnectionStability] = useState({
-    lastHeartbeats: [],
-    isStable: true,
-  })
-
-  // Tank capacity (liters) — adjust to your actual tank size
+  // Default tank capacity (liters). Adjust if you know the tank capacity in your project.
   const TANK_CAPACITY_LITERS = 200
+
+  // Helper to format a date/time consistently for Chart & Overview labels
+  const formatChartTime = (date) => {
+    try {
+      if (!date) return ""
+      const d = new Date(date)
+      // Show hours:minutes:seconds for clarity; Chart component will convert timestamps as needed
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    } catch (err) {
+      return String(date)
+    }
+  }
 
   // Helper: round timestamp down to nearest 15-minute quarter and return ISO key
   const quarterKeyForTimestamp = (timestamp) => {
@@ -40,13 +32,64 @@ const Dashboard = ({ isDarkMode }) => {
     d.setMinutes(quarter)
     return d.toISOString()
   }
+  const [sensorData, setSensorData] = useState({
+    suhu: 0,
+    kelembaban: 0,
+    ph: 0,
+    water_percent: 0,
+    water_adc: 0,
+    pompa: "Mati",
+  })
+  const [chartData, setChartData] = useState([])
+  const chartDataRef = useRef([]) // buffer ref - reduce frequent setState
+  const chartFlushIntervalRef = useRef(null)
 
-  // =========================BAGIAN TIMESTAMP=========================
-  const formatChartTime = (timestamp) => {
-    return new Date(timestamp).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
+  // Runtime/connection state
+  const [recentActivity, setRecentActivity] = useState([])
+  const [sensorStatus, setSensorStatus] = useState("offline")
+  const [lastUpdateTime, setLastUpdateTime] = useState(null)
+  const [connectionStability, setConnectionStability] = useState({ lastHeartbeats: [], isStable: true })
+  const [subscriptionEvents, setSubscriptionEvents] = useState(0)
+  const [fetchCounter, setFetchCounter] = useState(0)
+
+  // Overview refs and tracking
+  const overviewMapRef = useRef({}) // per-quarter aggregations
+  const lastOverviewUpdateRef = useRef(0)
+  const lastQuarterKeyRef = useRef(quarterKeyForTimestamp(new Date()))
+
+  // Overview/aggregate state (quarterly) — these were accidentally removed; re-declare here
+  const [overviewData, setOverviewData] = useState([])
+  const [smoothedOverview, setSmoothedOverview] = useState([])
+
+  // helper for shallow comparison of point arrays (by length+last timestamp+values)
+  const arePointsSame = (a, b) => {
+    if (!a || !b) return false
+    if (a.length !== b.length) return false
+    const la = a[a.length - 1]
+    const lb = b[b.length - 1]
+    if (!la || !lb) return false
+    if (la.timestamp !== lb.timestamp) return false
+    // quick sample comparison: last and middle
+    const ma = a[Math.floor(a.length / 2)]
+    const mb = b[Math.floor(b.length / 2)]
+    if (ma?.timestamp !== mb?.timestamp) return false
+    return true
+  }
+
+  // Memoize displayed overview to stabilize prop identity for Chart
+  const displayedOverview = useMemo(() => {
+    return (smoothedOverview && smoothedOverview.length > 0) ? smoothedOverview : overviewData
+  }, [smoothedOverview, overviewData])
+
+  // Helper: set overview dataset only if it has changed to avoid unnecessary re-render
+  const setOverviewIfChanged = (points, smoothPoints) => {
+    setOverviewData((prev) => {
+      if (arePointsSame(prev, points)) return prev
+      return points
+    })
+    setSmoothedOverview((prev) => {
+      if (arePointsSame(prev, smoothPoints)) return prev
+      return smoothPoints
     })
   }
 
@@ -63,17 +106,17 @@ const Dashboard = ({ isDarkMode }) => {
       pompa: newData.pump_status || "Auto",
     })
 
-    setChartData((prev) =>
-      [
-        ...prev,
-          {
-            time: formatChartTime(timestamp),
-            timestamp: timestamp.toISOString(),
-            temperature: Number(newData.temperature) || 0,
-            humidity: Number(newData.humidity) || 0,
-          },
-      ].slice(-100),
-    )
+    // push new point into chart buffer ref (NO setState here)
+    chartDataRef.current.push({
+      time: formatChartTime(timestamp),
+      timestamp: timestamp.toISOString(),
+      temperature: Number(newData.temperature) || 0,
+      humidity: Number(newData.humidity) || 0,
+    })
+    // keep buffer capped (for memory)
+    if (chartDataRef.current.length > 500) {
+      chartDataRef.current.splice(0, chartDataRef.current.length - 500)
+    }
 
     // Update recentActivity as FIFO (max 5). Avoid duplicates by id.
     setRecentActivity((prev) => {
@@ -116,21 +159,11 @@ const Dashboard = ({ isDarkMode }) => {
         }
         overviewMapRef.current = map
 
-        // Only update UI if last UI update was > DEBOUNCE_MS or avg changed enough
-        const DEBOUNCE_MS = 800
-        const lastUpdate = lastOverviewUpdateRef.current || 0
-        let shouldUpdate = false
-        if (now - lastUpdate > DEBOUNCE_MS) shouldUpdate = true
-        // compute avg and compare
-        if (!shouldUpdate) {
-          const m = map[qKey]
-          const avgTemp = Number(m.sumTemp / m.count)
-          const avgHum = Number(m.sumHum / m.count)
-          const prevEntry = (overviewData || []).find(it => it.quarterKey === qKey)
-          if (!prevEntry) shouldUpdate = true
-          else if (Math.abs(prevEntry.temperature - avgTemp) > 0.1 || Math.abs(prevEntry.humidity - avgHum) > 0.1) shouldUpdate = true
-        }
-        if (shouldUpdate) {
+        // Only update overviewData on quarter boundary: avoids frequent updates and stuttering
+        const currentQuarterKey = quarterKeyForTimestamp(new Date())
+        const isNewQuarter = currentQuarterKey !== lastQuarterKeyRef.current
+        if (isNewQuarter) {
+          lastQuarterKeyRef.current = currentQuarterKey
           lastOverviewUpdateRef.current = now
           const keys = Object.keys(map).sort()
           const lastKeys = keys.slice(-10)
@@ -145,7 +178,22 @@ const Dashboard = ({ isDarkMode }) => {
               humidity: Number(m.sumHum / m.count) || 0,
             }
           })
-          setOverviewData(points)
+          // set overview/smoothed overview only if changed
+          // compute smoothed overview to reduce abrupt changes
+          const windowSize = 3
+          const smoothPoints = points.map((p, i, arr) => {
+            const start = Math.max(0, i - Math.floor(windowSize / 2))
+            const end = Math.min(arr.length - 1, i + Math.floor(windowSize / 2))
+            const slice = arr.slice(start, end + 1)
+            const avgT = slice.reduce((s, it) => s + Number(it.temperature), 0) / slice.length
+            const avgH = slice.reduce((s, it) => s + Number(it.humidity), 0) / slice.length
+            return {
+              ...p,
+              temperature: Number(avgT.toFixed(2)),
+              humidity: Number(avgH.toFixed(2)),
+            }
+          })
+          setOverviewIfChanged(points, smoothPoints)
         }
       } catch (err) {
         console.error('Failed updating overview map', err)
@@ -166,9 +214,71 @@ const Dashboard = ({ isDarkMode }) => {
     setSensorStatus("online")
   }, [])
 
+  // --- Debug helpers: fetch latest, fetch history, insert test row ---
+  const fetchLatest = async () => {
+    try {
+      setFetchCounter((c) => c + 1)
+      const { data, error } = await supabase
+        .from('sensor_data')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+      if (error) throw error
+      if (data && data.length > 0) {
+        console.debug('fetchLatest got', data[0])
+        handleNewSensorData(data[0])
+        return data[0]
+      }
+      console.debug('fetchLatest: no data returned')
+      return null
+    } catch (err) {
+      console.error('fetchLatest unexpected err', err)
+      return null
+    }
+  }
+
+  const fetchHistory = async (limit = 50) => {
+    try {
+      const { data, error } = await supabase
+        .from('sensor_data')
+        .select('*')
+        .order('created_at', { ascending: true })
+        .limit(limit)
+      if (error) throw error
+      console.debug('fetchHistory got', data?.length ?? 0, 'rows')
+      return data
+    } catch (err) {
+      console.error('fetchHistory unexpected err', err)
+      return null
+    }
+  }
+
+  const insertTestRow = async (opts = {}) => {
+    try {
+      const now = new Date().toISOString()
+      const payload = {
+        temperature: opts.temperature ?? (Math.random() * 7 + 25).toFixed(2),
+        humidity: opts.humidity ?? Math.round(Math.random() * 30 + 50),
+        water_percent: opts.water_percent ?? Math.round(Math.random() * 60 + 20),
+        water_adc: opts.water_adc ?? Math.round(Math.random() * 4096),
+        pump_status: opts.pump_status ?? 'Auto',
+        soil_percent: opts.soil_percent ?? Math.round(Math.random() * 100),
+        created_at: opts.created_at ?? now,
+      }
+      const { data, error } = await supabase.from('sensor_data').insert([payload]).select()
+      if (error) throw error
+      console.debug('insertTestRow inserted', data)
+      return data
+    } catch (err) {
+      console.error('insertTestRow error', err)
+      return null
+    }
+  }
+
   useEffect(() => {
     let subscription
     let statusCheck
+    let quarterTimer
 
     const initialize = async () => {
       try {
@@ -247,7 +357,21 @@ const Dashboard = ({ isDarkMode }) => {
                   humidity: Number(m.sumHum / m.count) || 0,
                 }
               })
-              setOverviewData(overviewPoints)
+              // compute initial smoothing for overviewPoints
+              const windowSizeInit = 3
+              const smoothInit = overviewPoints.map((p, i, arr) => {
+                const start = Math.max(0, i - Math.floor(windowSizeInit / 2))
+                const end = Math.min(arr.length - 1, i + Math.floor(windowSizeInit / 2))
+                const slice = arr.slice(start, end + 1)
+                const avgT = slice.reduce((s, it) => s + Number(it.temperature), 0) / slice.length
+                const avgH = slice.reduce((s, it) => s + Number(it.humidity), 0) / slice.length
+                return {
+                  ...p,
+                  temperature: Number(avgT.toFixed(2)),
+                  humidity: Number(avgH.toFixed(2)),
+                }
+              })
+              setOverviewIfChanged(overviewPoints, smoothInit)
         }
 
         // Fetch recent activity (latest 5 rows). We'll store as FIFO (oldest->newest)
@@ -267,17 +391,30 @@ const Dashboard = ({ isDarkMode }) => {
           .limit(10)
 
         if (overviewList) {
-          setOverviewData(
-            overviewList
-                  .reverse()
-                  .map((item) => ({
-                    id: item.id,
-                    time: formatChartTime(new Date(item.created_at)),
-                    timestamp: new Date(item.created_at).toISOString(),
-                    temperature: item.temperature,
-                    humidity: item.humidity,
-                  })),
-          )
+          const mappedOverview = overviewList
+            .reverse()
+            .map((item) => ({
+              id: item.id,
+              time: formatChartTime(new Date(item.created_at)),
+              timestamp: new Date(item.created_at).toISOString(),
+              temperature: Number(item.temperature) || 0,
+              humidity: Number(item.humidity) || 0,
+            }))
+          // compute initial smoothing for overviewList
+          const windowSizeList = 3
+          const smoothList = mappedOverview.map((p, i, arr) => {
+            const start = Math.max(0, i - Math.floor(windowSizeList / 2))
+            const end = Math.min(arr.length - 1, i + Math.floor(windowSizeList / 2))
+            const slice = arr.slice(start, end + 1)
+            const avgT = slice.reduce((s, it) => s + Number(it.temperature), 0) / slice.length
+            const avgH = slice.reduce((s, it) => s + Number(it.humidity), 0) / slice.length
+            return {
+              ...p,
+              temperature: Number(avgT.toFixed(2)),
+              humidity: Number(avgH.toFixed(2)),
+            }
+          })
+          setOverviewIfChanged(mappedOverview, smoothList)
         }
 
         // Set up real-time subscription
@@ -291,7 +428,15 @@ const Dashboard = ({ isDarkMode }) => {
               schema: "public",
               table: "sensor_data",
             },
-            (payload) => handleNewSensorData(payload.new),
+            (payload) => {
+              try {
+                console.debug('realtime insert', payload)
+                setSubscriptionEvents((s) => s + 1)
+                handleNewSensorData(payload.new)
+              } catch (e) {
+                console.error('realtime handler error', e)
+              }
+            },
           )
           .subscribe()
       } catch (error) {
@@ -301,6 +446,47 @@ const Dashboard = ({ isDarkMode }) => {
     }
 
     initialize()
+
+    const updateOverviewFromMap = () => {
+      try {
+        const map = overviewMapRef.current || {}
+        const currentQuarterKey = quarterKeyForTimestamp(new Date())
+        if (currentQuarterKey !== lastQuarterKeyRef.current) {
+          lastQuarterKeyRef.current = currentQuarterKey
+          const keys = Object.keys(map).sort()
+          const completedKeys = keys.filter(k => k < currentQuarterKey)
+          const lastKeys = completedKeys.slice(-10)
+          const points = lastKeys.map(k => {
+            const m = map[k]
+            return {
+              id: m.lastId,
+              quarterKey: k,
+              time: formatChartTime(new Date(m.lastTimestamp)),
+              timestamp: new Date(m.lastTimestamp).toISOString(),
+              temperature: Number(m.sumTemp / m.count) || 0,
+              humidity: Number(m.sumHum / m.count) || 0,
+            }
+          })
+          const window = 3
+          const smooth = points.map((p, i, arr) => {
+            const start = Math.max(0, i - Math.floor(window / 2))
+            const end = Math.min(arr.length - 1, i + Math.floor(window / 2))
+            const slice = arr.slice(start, end + 1)
+            const avgT = slice.reduce((s, it) => s + Number(it.temperature), 0) / slice.length
+            const avgH = slice.reduce((s, it) => s + Number(it.humidity), 0) / slice.length
+            return {
+              ...p,
+              temperature: Number(avgT.toFixed(2)),
+              humidity: Number(avgH.toFixed(2)),
+            }
+          })
+          setOverviewIfChanged(points, smooth)
+        }
+      } catch (err) {
+        console.error('updateOverviewFromMap error', err)
+      }
+    }
+    quarterTimer = setInterval(updateOverviewFromMap, 5000)
 
     // More robust status checking
     statusCheck = setInterval(() => {
@@ -321,8 +507,35 @@ const Dashboard = ({ isDarkMode }) => {
         subscription.unsubscribe()
       }
       clearInterval(statusCheck)
+      if (quarterTimer) clearInterval(quarterTimer)
+      if (chartFlushIntervalRef.current) {
+        clearInterval(chartFlushIntervalRef.current)
+        chartFlushIntervalRef.current = null
+      }
     }
   }, [handleNewSensorData, lastUpdateTime, connectionStability.isStable])
+
+  // Flush chart buffer periodically to state to reduce re-renders
+  useEffect(() => {
+    if (chartFlushIntervalRef.current) return
+    chartFlushIntervalRef.current = setInterval(() => {
+      const buffer = chartDataRef.current || []
+      if (!buffer || buffer.length === 0) return
+      setChartData((prev) => {
+        const next = [...prev, ...buffer].slice(-100)
+        if (arePointsSame(prev, next)) return prev
+        return next
+      })
+      chartDataRef.current = []
+    }, 1000)
+
+    return () => {
+      if (chartFlushIntervalRef.current) {
+        clearInterval(chartFlushIntervalRef.current)
+        chartFlushIntervalRef.current = null
+      }
+    }
+  }, [])
 
   const renderSensorValue = (value, unit) => {
     if (sensorStatus === "offline") {
@@ -387,6 +600,39 @@ const Dashboard = ({ isDarkMode }) => {
           )}
         </div>
 
+        {/* Debug Panel: Only show when running locally or when dev mode is enabled (keeps UI clean) */}
+        <div className="mt-6">
+          <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-slate-800 text-slate-200' : 'bg-white text-gray-800'}`}>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className={`text-sm font-medium ${isDarkMode ? 'text-slate-200' : 'text-gray-800'}`}>Debug Panel</h3>
+              <div className="text-xs text-gray-400">Counters: sub {subscriptionEvents} • fetch {fetchCounter}</div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => fetchLatest()}
+                className="px-3 py-1 rounded-md bg-blue-500 text-white text-sm"
+              >
+                Fetch Latest
+              </button>
+              <button
+                onClick={() => fetchHistory(20).then((d) => console.debug('Fetched history', d?.length))}
+                className="px-3 py-1 rounded-md bg-gray-600 text-white text-sm"
+              >
+                Fetch History (20)
+              </button>
+              <button
+                onClick={() => insertTestRow()}
+                className="px-3 py-1 rounded-md bg-green-600 text-white text-sm"
+              >
+                Insert Test Row
+              </button>
+            </div>
+            <div className="mt-2 text-xs text-gray-400">
+              Subscription events will increase when realtime inserts are received. Use Insert Test Row to trigger events from the browser.
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card
             title="Sensor Suhu"
@@ -444,7 +690,7 @@ const Dashboard = ({ isDarkMode }) => {
           ) : (
             <Chart
               title="Overview Suhu & Kelembaban"
-              data={overviewData}
+              data={displayedOverview}
               darkMode={isDarkMode}
             />
           )}

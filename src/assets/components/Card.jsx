@@ -4,7 +4,8 @@ import useDarkMode from "../hooks/useDarkMode"
 
 const Card = ({ title, icon, value, unit, normalRange, darkMode, statusColor }) => {
   const { isDarkMode: globalDarkMode } = useDarkMode()
-  const isDarkMode = darkMode !== undefined ? darkMode : globalDarkMode
+  const docDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  const isDarkMode = darkMode !== undefined ? darkMode : (globalDarkMode ?? docDark)
 
   return (
     <div

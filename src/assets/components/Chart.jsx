@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -14,7 +14,8 @@ import useDarkMode from '../hooks/useDarkMode';
 
 const Chart = ({ title = "Real-time Chart", data = [], darkMode }) => {
   const { isDarkMode: globalDarkMode } = useDarkMode();
-  const isDarkMode = darkMode !== undefined ? darkMode : globalDarkMode;
+  const docDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+  const isDarkMode = darkMode !== undefined ? darkMode : (globalDarkMode ?? docDark);
 
   const filteredData = useMemo(() => {
     if (!data || !data.length) return [];
@@ -70,8 +71,16 @@ const Chart = ({ title = "Real-time Chart", data = [], darkMode }) => {
                           strokeDasharray="3 3" 
                           stroke={isDarkMode ? '#334155' : '#E5E7EB'}
                         />
-                        <XAxis 
-                          dataKey="time" 
+                        <XAxis
+                          dataKey="timestamp"
+                          tickFormatter={(val) => {
+                            try {
+                              const d = new Date(val)
+                              return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            } catch (err) {
+                              return val
+                            }
+                          }}
                           stroke={isDarkMode ? '#CBD5E1' : '#1F2937'}
                         />
                         <YAxis 
@@ -83,25 +92,36 @@ const Chart = ({ title = "Real-time Chart", data = [], darkMode }) => {
                             borderColor: isDarkMode ? '#334155' : '#E5E7EB',
                             color: isDarkMode ? '#CBD5E1' : '#1F2937'
                           }}
+                          labelFormatter={(label) => {
+                            // format timestamp label
+                            try {
+                              const d = new Date(label)
+                              return d.toLocaleString()
+                            } catch (err) { return label }
+                          }}
+                          formatter={(value, name) => [`${value}`, `${name}`]}
+                          cursor={{ stroke: isDarkMode ? '#334155' : '#E5E7EB', strokeWidth: 1 }}
                         />
-                        <Legend />
+                        <Legend verticalAlign="bottom" align="center" />
                         <Line
                           type="monotone"
                           dataKey="temperature"
                           name="Suhu (°C)"
                           stroke="#EF4444"
-                          dot={true}
+                          dot={false}
                           isAnimationActive={false}
-                          activeDot={{ r: 8 }}
+                          activeDot={{ r: 6 }}
+                          strokeWidth={2}
                         />
                         <Line
                           type="monotone"
                           dataKey="humidity"
                           name="Kelembaban (%)"
                           stroke="#3B82F6"
-                          dot={true}
+                          dot={false}
                           isAnimationActive={false}
-                          activeDot={{ r: 8 }}
+                          activeDot={{ r: 6 }}
+                          strokeWidth={2}
                         />
                       </LineChart>
                     </ResponsiveContainer>
@@ -151,4 +171,16 @@ const Chart = ({ title = "Real-time Chart", data = [], darkMode }) => {
   )
 }
 
-export default Chart
+export default React.memo(Chart, (prevProps, nextProps) => {
+  // If dark mode changed - re-render
+  if (prevProps.darkMode !== nextProps.darkMode) return false
+  // If data length differs - re-render
+  const pLen = prevProps.data?.length ?? 0
+  const nLen = nextProps.data?.length ?? 0
+  if (pLen !== nLen) return false
+  // If last item timestamp differs - re-render
+  const pLastTs = prevProps.data?.[pLen - 1]?.timestamp
+  const nLastTs = nextProps.data?.[nLen - 1]?.timestamp
+  if (pLastTs !== nLastTs) return false
+  return true // skip re-render if no relevant change
+})

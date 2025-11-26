@@ -18,10 +18,30 @@ const useDarkMode = () => {
     } else {
       document.documentElement.classList.remove('dark')
     }
-    
+
     // Save to localStorage
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode))
+
+    // Broadcast to other subscribers in the same window/tab so that multiple
+    // hook instances stay in sync (avoids conflicting local hook states)
+    try {
+      const ev = new CustomEvent('darkModeToggle', { detail: { isDarkMode } })
+      window.dispatchEvent(ev)
+    } catch (err) {
+      // ignore (older browsers)
+    }
   }, [isDarkMode])
+
+  // Keep this hook instances in sync with toggles from other components
+  useEffect(() => {
+    const handler = (e) => {
+      if (!e?.detail) return
+      const next = !!e.detail.isDarkMode
+      setIsDarkMode(next)
+    }
+    window.addEventListener('darkModeToggle', handler)
+    return () => window.removeEventListener('darkModeToggle', handler)
+  }, [])
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode)
