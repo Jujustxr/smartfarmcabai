@@ -10,6 +10,8 @@ import { supabase } from "../../lib/supabaseClient"
 const Dashboard = ({ isDarkMode }) => {
   // Default tank capacity (liters). Adjust if you know the tank capacity in your project.
   const TANK_CAPACITY_LITERS = 200
+  const CHART_FLUSH_MS = 2000 // flush interval to reduce updates
+  const CHART_MAX_POINTS = 100
 
   // Helper to format a date/time consistently for Chart & Overview labels
   const formatChartTime = (date) => {
@@ -23,15 +25,6 @@ const Dashboard = ({ isDarkMode }) => {
     }
   }
 
-  // Helper: round timestamp down to nearest 15-minute quarter and return ISO key
-  const quarterKeyForTimestamp = (timestamp) => {
-    const d = new Date(timestamp)
-    d.setSeconds(0, 0)
-    const minutes = d.getMinutes()
-    const quarter = Math.floor(minutes / 15) * 15
-    d.setMinutes(quarter)
-    return d.toISOString()
-  }
   const [sensorData, setSensorData] = useState({
     suhu: 0,
     kelembaban: 0,
@@ -40,7 +33,7 @@ const Dashboard = ({ isDarkMode }) => {
     water_adc: 0,
     pompa: "Mati",
   })
-  const [chartData, setChartData] = useState([])
+  const [chartData, setChartData] = useState([]) // uses numeric timestamp in .timestamp field
   const chartDataRef = useRef([]) // buffer ref - reduce frequent setState
   const chartFlushIntervalRef = useRef(null)
 
@@ -55,7 +48,7 @@ const Dashboard = ({ isDarkMode }) => {
   // Overview refs and tracking
   const overviewMapRef = useRef({}) // per-quarter aggregations
   const lastOverviewUpdateRef = useRef(0)
-  const lastQuarterKeyRef = useRef(quarterKeyForTimestamp(new Date()))
+  const lastQuarterKeyRef = useRef(formatChartTime(new Date()))
 
   // Overview/aggregate state (quarterly) — these were accidentally removed; re-declare here
   const [overviewData, setOverviewData] = useState([])
@@ -65,21 +58,28 @@ const Dashboard = ({ isDarkMode }) => {
   const arePointsSame = (a, b) => {
     if (!a || !b) return false
     if (a.length !== b.length) return false
+    // check first/last timestamps and a median sample value for stability
     const la = a[a.length - 1]
     const lb = b[b.length - 1]
-    if (!la || !lb) return false
-    if (la.timestamp !== lb.timestamp) return false
-    // quick sample comparison: last and middle
+    const fa = a[0]
+    const fb = b[0]
     const ma = a[Math.floor(a.length / 2)]
     const mb = b[Math.floor(b.length / 2)]
-    if (ma?.timestamp !== mb?.timestamp) return false
+    if (!la || !lb || !fa || !fb || !ma || !mb) return false
+    if (la.timestamp !== lb.timestamp) return false
+    if (fa.timestamp !== fb.timestamp) return false
+    if (ma.timestamp !== mb.timestamp) return false
+    // compare sample value changes (temperature + humidity) to avoid tiny diffs
+    if (Math.abs(la.temperature - lb.temperature) > 0.001) return false
+    if (Math.abs(la.humidity - lb.humidity) > 0.001) return false
     return true
   }
 
   // Memoize displayed overview to stabilize prop identity for Chart
   const displayedOverview = useMemo(() => {
-    return (smoothedOverview && smoothedOverview.length > 0) ? smoothedOverview : overviewData
-  }, [smoothedOverview, overviewData])
+    const lastPoints = chartData.slice(-CHART_MAX_POINTS)
+    return lastPoints
+  }, [chartData])
 
   // Helper: set overview dataset only if it has changed to avoid unnecessary re-render
   const setOverviewIfChanged = (points, smoothPoints) => {
@@ -107,15 +107,41 @@ const Dashboard = ({ isDarkMode }) => {
     })
 
     // push new point into chart buffer ref (NO setState here)
-    chartDataRef.current.push({
-      time: formatChartTime(timestamp),
-      timestamp: timestamp.toISOString(),
-      temperature: Number(newData.temperature) || 0,
-      humidity: Number(newData.humidity) || 0,
-    })
-    // keep buffer capped (for memory)
-    if (chartDataRef.current.length > 500) {
-      chartDataRef.current.splice(0, chartDataRef.current.length - 500)
+    // Use numeric timestamp (ms) and avoid pushing duplicate timestamps
+    try {
+      const ptTimestampMs = timestamp.getTime()
+      const lastPt = chartDataRef.current[chartDataRef.current.length - 1]
+      const newTemp = Number(newData.temperature) || 0
+      const newHum = Number(newData.humidity) || 0
+      // If last exists and timestamp identical
+      if (lastPt && lastPt.timestamp === ptTimestampMs) {
+        // If values are identical, skip (prevents duplicates/chatter)
+        if (Math.abs(lastPt.temperature - newTemp) < 0.001 && Math.abs(lastPt.humidity - newHum) < 0.001) {
+          // nothing changed for this timestamp
+        } else {
+          // replace last point with updated values
+          chartDataRef.current[chartDataRef.current.length - 1] = {
+            time: formatChartTime(timestamp),
+            timestamp: ptTimestampMs,
+            temperature: newTemp,
+            humidity: newHum,
+            id: newData.id ?? null,
+          }
+        }
+      } else {
+        // only push monotonically increasing timestamps
+        if (!lastPt || ptTimestampMs > lastPt.timestamp) {
+          chartDataRef.current.push({
+            time: formatChartTime(timestamp),
+            timestamp: ptTimestampMs,
+            temperature: newTemp,
+            humidity: newHum,
+            id: newData.id ?? null,
+          })
+        }
+      }
+    } catch (err) {
+      console.error('Failed push chart point', err)
     }
 
     // Update recentActivity as FIFO (max 5). Avoid duplicates by id.
@@ -131,73 +157,7 @@ const Dashboard = ({ isDarkMode }) => {
       return queue
     })
 
-      // Update overviewMapRef (calculate average per quarter) and update overviewData.
-      try {
-        if (!newData?.id) return
-        const qKey = quarterKeyForTimestamp(newData.created_at)
-        const map = overviewMapRef.current || {}
-        const valueTemp = Number(newData.temperature) || 0
-        const valueHum = Number(newData.humidity) || 0
-        const entry = map[qKey]
-        const now = Date.now()
-        if (!entry) {
-          map[qKey] = {
-            sumTemp: valueTemp,
-            sumHum: valueHum,
-            count: 1,
-            lastTimestamp: newData.created_at,
-            lastId: newData.id,
-          }
-        } else {
-          entry.sumTemp += valueTemp
-          entry.sumHum += valueHum
-          entry.count += 1
-          if (new Date(newData.created_at) > new Date(entry.lastTimestamp)) {
-            entry.lastTimestamp = newData.created_at
-            entry.lastId = newData.id
-          }
-        }
-        overviewMapRef.current = map
-
-        // Only update overviewData on quarter boundary: avoids frequent updates and stuttering
-        const currentQuarterKey = quarterKeyForTimestamp(new Date())
-        const isNewQuarter = currentQuarterKey !== lastQuarterKeyRef.current
-        if (isNewQuarter) {
-          lastQuarterKeyRef.current = currentQuarterKey
-          lastOverviewUpdateRef.current = now
-          const keys = Object.keys(map).sort()
-          const lastKeys = keys.slice(-10)
-          const points = lastKeys.map(k => {
-            const m = map[k]
-            return {
-              id: m.lastId,
-              quarterKey: k,
-              time: formatChartTime(new Date(m.lastTimestamp)),
-              timestamp: new Date(m.lastTimestamp).toISOString(),
-              temperature: Number(m.sumTemp / m.count) || 0,
-              humidity: Number(m.sumHum / m.count) || 0,
-            }
-          })
-          // set overview/smoothed overview only if changed
-          // compute smoothed overview to reduce abrupt changes
-          const windowSize = 3
-          const smoothPoints = points.map((p, i, arr) => {
-            const start = Math.max(0, i - Math.floor(windowSize / 2))
-            const end = Math.min(arr.length - 1, i + Math.floor(windowSize / 2))
-            const slice = arr.slice(start, end + 1)
-            const avgT = slice.reduce((s, it) => s + Number(it.temperature), 0) / slice.length
-            const avgH = slice.reduce((s, it) => s + Number(it.humidity), 0) / slice.length
-            return {
-              ...p,
-              temperature: Number(avgT.toFixed(2)),
-              humidity: Number(avgH.toFixed(2)),
-            }
-          })
-          setOverviewIfChanged(points, smoothPoints)
-        }
-      } catch (err) {
-        console.error('Failed updating overview map', err)
-      }
+    // no per-quarter overview updates: chart will update via buffered chartDataRef flush
 
     // Update connection stability tracking
     setConnectionStability((prev) => {
@@ -278,7 +238,6 @@ const Dashboard = ({ isDarkMode }) => {
   useEffect(() => {
     let subscription
     let statusCheck
-    let quarterTimer
 
     const initialize = async () => {
       try {
@@ -313,65 +272,13 @@ const Dashboard = ({ isDarkMode }) => {
             historyData.map((item) => ({
               id: item.id,
               time: formatChartTime(new Date(item.created_at)),
-              timestamp: new Date(item.created_at).toISOString(),
+              timestamp: new Date(item.created_at).getTime(),
               temperature: Number(item.temperature) || 0,
               humidity: Number(item.humidity) || 0,
             })),
           )
 
-              // Build overviewMapRef using average values per quarter (sum/count)
-              const map = {}
-              historyData.forEach((item) => {
-                const key = quarterKeyForTimestamp(item.created_at)
-                if (!map[key]) {
-                  map[key] = {
-                    sumTemp: Number(item.temperature) || 0,
-                    sumHum: Number(item.humidity) || 0,
-                    count: 1,
-                    lastTimestamp: item.created_at,
-                    lastId: item.id,
-                  }
-                } else {
-                  map[key].sumTemp += Number(item.temperature) || 0
-                  map[key].sumHum += Number(item.humidity) || 0
-                  map[key].count += 1
-                  // keep latest timestamp/id
-                  if (new Date(item.created_at) > new Date(map[key].lastTimestamp)) {
-                    map[key].lastTimestamp = item.created_at
-                    map[key].lastId = item.id
-                  }
-                }
-              })
-              // store into ref for incremental updates
-              overviewMapRef.current = map
-              const quarterKeys = Object.keys(map).sort()
-              const lastQuarters = quarterKeys.slice(-10)
-              const overviewPoints = lastQuarters.map((k) => {
-                const m = map[k]
-                return {
-                  id: m.lastId,
-                  quarterKey: k,
-                  time: formatChartTime(new Date(m.lastTimestamp)),
-                  timestamp: new Date(m.lastTimestamp).toISOString(),
-                  temperature: Number(m.sumTemp / m.count) || 0,
-                  humidity: Number(m.sumHum / m.count) || 0,
-                }
-              })
-              // compute initial smoothing for overviewPoints
-              const windowSizeInit = 3
-              const smoothInit = overviewPoints.map((p, i, arr) => {
-                const start = Math.max(0, i - Math.floor(windowSizeInit / 2))
-                const end = Math.min(arr.length - 1, i + Math.floor(windowSizeInit / 2))
-                const slice = arr.slice(start, end + 1)
-                const avgT = slice.reduce((s, it) => s + Number(it.temperature), 0) / slice.length
-                const avgH = slice.reduce((s, it) => s + Number(it.humidity), 0) / slice.length
-                return {
-                  ...p,
-                  temperature: Number(avgT.toFixed(2)),
-                  humidity: Number(avgH.toFixed(2)),
-                }
-              })
-              setOverviewIfChanged(overviewPoints, smoothInit)
+          // no per-quarter overview map — rely on chartData for visual overview
         }
 
         // Fetch recent activity (latest 5 rows). We'll store as FIFO (oldest->newest)
@@ -396,11 +303,11 @@ const Dashboard = ({ isDarkMode }) => {
             .map((item) => ({
               id: item.id,
               time: formatChartTime(new Date(item.created_at)),
-              timestamp: new Date(item.created_at).toISOString(),
+              timestamp: new Date(item.created_at).getTime(),
               temperature: Number(item.temperature) || 0,
               humidity: Number(item.humidity) || 0,
             }))
-          // compute initial smoothing for overviewList
+          // compute basic smoothing, but chart uses chartData directly
           const windowSizeList = 3
           const smoothList = mappedOverview.map((p, i, arr) => {
             const start = Math.max(0, i - Math.floor(windowSizeList / 2))
@@ -414,6 +321,7 @@ const Dashboard = ({ isDarkMode }) => {
               humidity: Number(avgH.toFixed(2)),
             }
           })
+          // keep initial overview points (not used in real-time)
           setOverviewIfChanged(mappedOverview, smoothList)
         }
 
@@ -486,28 +394,13 @@ const Dashboard = ({ isDarkMode }) => {
         console.error('updateOverviewFromMap error', err)
       }
     }
-    quarterTimer = setInterval(updateOverviewFromMap, 5000)
-
-    // More robust status checking
-    statusCheck = setInterval(() => {
-      if (lastUpdateTime) {
-        const timeSinceLastUpdate = (new Date() - lastUpdateTime) / 1000
-
-        // Only set to offline if:
-        // 1. No updates for more than 30 seconds AND
-        // 2. Connection has been unstable
-        if (timeSinceLastUpdate > 30 && !connectionStability.isStable) {
-          setSensorStatus("offline")
-        }
-      }
-    }, 15000) // Check every 15 seconds
-
+    // no overview per-quarter updates - remove timer/logic
     return () => {
       if (subscription) {
         subscription.unsubscribe()
       }
       clearInterval(statusCheck)
-      if (quarterTimer) clearInterval(quarterTimer)
+      // no quarterTimer to clear
       if (chartFlushIntervalRef.current) {
         clearInterval(chartFlushIntervalRef.current)
         chartFlushIntervalRef.current = null
@@ -522,12 +415,28 @@ const Dashboard = ({ isDarkMode }) => {
       const buffer = chartDataRef.current || []
       if (!buffer || buffer.length === 0) return
       setChartData((prev) => {
-        const next = [...prev, ...buffer].slice(-100)
+        // merge and dedup by numeric timestamp to avoid jitter/duplicates
+        const merged = [...prev, ...buffer]
+        // build map keyed by timestamp (ms)
+        const map = new Map()
+        for (const it of merged) {
+          // Here we prefer the value with latest id or timestamp if duplicates occur
+          const existing = map.get(it.timestamp)
+          if (!existing || (it.id && existing.id !== it.id)) {
+            map.set(it.timestamp, it)
+          } else {
+            map.set(it.timestamp, it)
+          }
+        }
+        // reconstruct ordered array
+        const deduped = Array.from(map.values()).sort((a, b) => a.timestamp - b.timestamp)
+        // keep last CHART_MAX_POINTS points
+        const next = deduped.slice(-CHART_MAX_POINTS)
         if (arePointsSame(prev, next)) return prev
         return next
       })
       chartDataRef.current = []
-    }, 1000)
+    }, CHART_FLUSH_MS) // throttle updates
 
     return () => {
       if (chartFlushIntervalRef.current) {
@@ -692,6 +601,8 @@ const Dashboard = ({ isDarkMode }) => {
               title="Overview Suhu & Kelembaban"
               data={displayedOverview}
               darkMode={isDarkMode}
+              disableAnimations={true} // pass-through prop — update Chart to respect it if needed
+              maxPoints={CHART_MAX_POINTS}
             />
           )}
 

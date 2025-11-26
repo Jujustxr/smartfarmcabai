@@ -6,13 +6,14 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  Legend
+  Tooltip as RechartsTooltip,
+  Legend as RechartsLegend,
 } from 'recharts';
 import { FaChartLine } from 'react-icons/fa';
 import useDarkMode from '../hooks/useDarkMode';
+// Chart.js/react-chartjs-2 removed — using Recharts only
 
-const Chart = ({ title = "Real-time Chart", data = [], darkMode }) => {
+const Chart = ({ title = "Real-time Chart", data = [], darkMode, disableAnimations = false, maxPoints = 100 }) => {
   const { isDarkMode: globalDarkMode } = useDarkMode();
   const docDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
   const isDarkMode = darkMode !== undefined ? darkMode : (globalDarkMode ?? docDark);
@@ -40,6 +41,8 @@ const Chart = ({ title = "Real-time Chart", data = [], darkMode }) => {
       })
       .sort((a, b) => a.parsedTimestamp - b.parsedTimestamp)
   }, [data]);
+
+  // Recharts handles rendering — `filteredData` is used directly in Recharts LineChart component
 
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center h-[300px]">
@@ -86,7 +89,7 @@ const Chart = ({ title = "Real-time Chart", data = [], darkMode }) => {
                         <YAxis 
                           stroke={isDarkMode ? '#CBD5E1' : '#1F2937'}
                         />
-                        <Tooltip 
+                        <RechartsTooltip 
                           contentStyle={{
                             backgroundColor: isDarkMode ? '#1E293B' : '#FFFFFF',
                             borderColor: isDarkMode ? '#334155' : '#E5E7EB',
@@ -102,14 +105,14 @@ const Chart = ({ title = "Real-time Chart", data = [], darkMode }) => {
                           formatter={(value, name) => [`${value}`, `${name}`]}
                           cursor={{ stroke: isDarkMode ? '#334155' : '#E5E7EB', strokeWidth: 1 }}
                         />
-                        <Legend verticalAlign="bottom" align="center" />
+                        <RechartsLegend verticalAlign="bottom" align="center" />
                         <Line
                           type="monotone"
                           dataKey="temperature"
                           name="Suhu (°C)"
                           stroke="#EF4444"
                           dot={false}
-                          isAnimationActive={false}
+                          isAnimationActive={!disableAnimations}
                           activeDot={{ r: 6 }}
                           strokeWidth={2}
                         />
@@ -119,7 +122,7 @@ const Chart = ({ title = "Real-time Chart", data = [], darkMode }) => {
                           name="Kelembaban (%)"
                           stroke="#3B82F6"
                           dot={false}
-                          isAnimationActive={false}
+                          isAnimationActive={!disableAnimations}
                           activeDot={{ r: 6 }}
                           strokeWidth={2}
                         />

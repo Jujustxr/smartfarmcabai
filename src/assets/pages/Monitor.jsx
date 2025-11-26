@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import SensorCard from '../components/SensorCard'
 import Chart from '../components/Chart'
 import { 
@@ -9,32 +9,46 @@ import {
   FaSun, 
   FaLeaf 
 } from 'react-icons/fa'
+import { supabase } from '../../lib/supabaseClient'
 
 const Monitor = ({ isDarkMode }) => {
-  const generateChartData = () => {
-    const data = []
-    const now = new Date()
-    
-    // INI DI GENERATE TIAP 30 MENIT
-    for (let i = 48; i >= 0; i--) {
-      const timestamp = new Date(now.getTime() - (i * 30 * 60 * 1000))
-      const hours = timestamp.getHours()
-      const minutes = timestamp.getMinutes()
-      const baseTemp = 26 + Math.sin((hours - 6) * Math.PI / 12) * 4 + Math.random() * 2
-      const baseHumidity = 65 + Math.cos((hours - 12) * Math.PI / 12) * 10 + Math.random() * 5
-      
-      data.push({
-        timestamp: timestamp.toISOString(),
-        time: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`,
-        temperature: Math.round(baseTemp * 10) / 10,
-        humidity: Math.round(baseHumidity * 10) / 10,
-      })
-    }
-    
-    return data
-  }
+  const [chartData, setChartData] = useState([])
 
-  const chartData = generateChartData()
+  useEffect(() => {
+    let subscription
+    const init = async () => {
+      const { data } = await supabase.from('sensor_data').select('*').order('created_at', { ascending: true }).limit(200)
+      if (data) {
+        setChartData(data.map((item) => ({
+          id: item.id,
+          time: new Date(item.created_at).toLocaleTimeString(),
+          timestamp: new Date(item.created_at).getTime(),
+          temperature: Number(item.temperature) || 0,
+          humidity: Number(item.humidity) || 0,
+        })))
+      }
+
+      subscription = supabase.channel('monitor_changes')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sensor_data' }, (payload) => {
+          const it = payload.new
+          setChartData((prev) => {
+            const next = [...prev, {
+              id: it.id,
+              time: new Date(it.created_at).toLocaleTimeString(),
+              timestamp: new Date(it.created_at).getTime(),
+              temperature: Number(it.temperature) || 0,
+              humidity: Number(it.humidity) || 0,
+            }].slice(-200)
+            return next
+          })
+        }).subscribe()
+    }
+    init()
+    return () => {
+      if (subscription) subscription.unsubscribe()
+    }
+  }, [])
+
   const suhuSensor = (26 + Math.sin(Date.now() / 100000) * 3 + Math.random() * 1).toFixed(1)
   const kelembabanUdara = Math.floor(60 + Math.cos(Date.now() / 120000) * 15 + Math.random() * 5)
   const phTanah = (6.5 + Math.sin(Date.now() / 150000) * 0.3 + Math.random() * 0.2).toFixed(1)
@@ -126,6 +140,8 @@ const Monitor = ({ isDarkMode }) => {
             title="Grafik Suhu & Kelembaban Real-time"
             data={chartData}
             darkMode={isDarkMode}
+            disableAnimations={true}
+            maxPoints={120}
           />
         </div>
 
