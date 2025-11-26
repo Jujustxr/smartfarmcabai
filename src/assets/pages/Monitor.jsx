@@ -84,10 +84,9 @@ const Monitor = ({ isDarkMode }) => {
             value={phTanah}
             unit=""
             normalRange="6.0-7.0"
-            progressValue={Math.min(Math.max((parseFloat(phTanah) - 5.5) / 2 * 100, 0), 100)}
+            progressValue={Math.min(Math.max((parseFloat(phTanah) - 5) / 3 * 100, 0), 100)}
             darkMode={isDarkMode}
           />
-
           {/* =========================BAGIAN SENSOR KELEMBAPAN TANAH========================= */}
           <SensorCard
             title="Kelembaban Tanah"
@@ -126,7 +125,6 @@ const Monitor = ({ isDarkMode }) => {
           <Chart 
             title="Grafik Suhu & Kelembaban Real-time"
             data={chartData}
-            timeRanges={['1H', '6H', '24H']}
             darkMode={isDarkMode}
           />
         </div>
