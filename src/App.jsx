@@ -120,8 +120,41 @@ const App = () => {
       />
     ) : (
       <Register
-        onRegister={() => {
-          supabase.auth.getUser().then(({ data }) => setUser(data.user))
+        onRegister={async (creds) => {
+          try {
+            if (!creds || !creds.email || !creds.password) {
+              setAuthError('Email and password are required for registration.')
+              return
+            }
+
+            // Call Supabase signUp to create a new user
+            const { data: signData, error: signError } = await supabase.auth.signUp({
+              email: creds.email,
+              password: creds.password,
+            })
+
+            if (signError) {
+              console.error('Supabase signUp error:', signError)
+              setAuthError(signError.message || String(signError))
+              return
+            }
+
+            // If Supabase returns a user object, set it in state.
+            // Note: Depending on your Supabase settings, email confirmation may be required
+            // In that case signData.user may be null and an email confirmation step is needed.
+            if (signData?.user) {
+              setAuthError('')
+              setUser(signData.user)
+              setTransitionType('slide')
+              setCurrentPage('dashboard')
+            } else {
+              // No immediate session - likely email confirmation required
+              setAuthError('Registration successful. Please check your email to confirm your account before signing in.')
+            }
+          } catch (err) {
+            console.error('Registration error:', err)
+            setAuthError(err?.message || 'Registration failed. Please try again.')
+          }
         }}
         switchMode={() => { setMode("login"); setTransitionType('fade'); }}
       />
